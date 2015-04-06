@@ -1,0 +1,105 @@
+% \documentclass[10pt, conference, compsocconf]{IEEEtran}
+%\documentclass[conference]{IEEEtran}
+\documentclass[letter]{sig-alternate}
+\usepackage{eso-pic,xcolor}
+\makeatletter
+%
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+\usepackage{flushend}
+%\AddToShipoutPicture*{%
+%\setlength{\@tempdimb}{20pt}%
+%\setlength{\@tempdimc}{\paperheight}%
+%\setlength{\unitlength}{1pt}%
+%\put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){%
+%   \makebox(0,-60)[l]{\color{blue}%
+%
+%  }%
+  
+%\put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){%
+%    \makebox(0,-85)[l]{\color{black}%
+%}%
+%}%
+
+%\put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){%
+%    \makebox(0,-110)[l]{\color{black}%
+%}%
+%  }%
+%}
+
+%
+\def\ps@headings{%
+\def\@oddhead{\mbox{}\scriptsize\rightmark \hfil \thepage}%
+\def\@evenhead{\scriptsize\thepage \hfil \leftmark\mbox{}}%
+\def\@oddfoot{}%
+\def\@evenfoot{}}
+\makeatother
+
+
+
+
+\pagestyle{headings}
+
+\title{Next-NDNVideo: live and pre-recorded streaming \\\ using Consumer / Producer API over NDN}
+
+\author{
+%Paper \#231, 13 pages
+Lijing Wang \\ {\normalsize Tsinghua University} \\ {\normalsize wanglj11@mails.tsinghua.edu.cn }
+\and Ilya Moiseenko \\ {\normalsize UCLA} \\ {\normalsize iliamo@cs.ucla.edu }
+\and Lixia Zhang \\ {\normalsize UCLA} \\ {\normalsize lixia@cs.ucla.edu }
+}
+
+
+\newfont{\nicettfont}{cmtt10}
+\newcommand{\ndnName}[1]{``{\nicettfont #1}''}
+\renewcommand{\texttt}[1]{{\nicettfont #1}}
+
+\newcommand{\todo}[1]{\vspace{2 mm}\par \noindent \marginpar{\textsc{ToDo}}
+\framebox{\begin{minipage}[c]{0.95 \columnwidth}
+\tt #1 \end{minipage}}\vspace{5 mm}\par}
+
+\usepackage{graphicx}
+% \usepackage[colorlinks]{hyperref}
+\usepackage[]{hyperref}
+\usepackage{breakurl}
+\usepackage{url}
+\usepackage[nocompress]{cite}
+\usepackage{amsmath}
+% \usepackage{verbatim}
+% \usepackage{algpseudocode}
+\usepackage{algpseudocode,algorithm}
+% More customizeable version. Probably it would be better to convert pseudocode to 2e format
+% \usepackage{algorithm2e} 
+\usepackage{multirow}
+\usepackage{times}
+\usepackage{color}
+
+\graphicspath{{figures/}}
+
+\begin{document}
+
+\maketitle
+
+% \begin{abstract}
+% Named Data Networking (NDN) is a general purpose protocol offering rich functionality at the network layer: caching, multi-path forwarding, multicast delivery, and data-based security model. Above the network layer, system libraries simplify application developers' tasks by providing an easy to use yet powerful API to utilize the functions enabled by NDN.  This paper presents the design of a Consumer / Producer programming interface that supports application level framing via new data retrieval protocols, and several supporting mechanisms to make NDN application programming easier and faster.
+% \end{abstract}
+
+
+%\begin{IEEEkeywords}
+%Information-centric networks, named data networking, API, inter-process communication
+%\end{IEEEkeywords}
+\input{01introduction}
+\input{02background}
+\input{03design}
+\input{04implementation}
+\input{05evaluation}
+\input{06comparison}
+\input{07conclusion}
+
+%\input{10-acknowledgement}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+
+\end{document}
