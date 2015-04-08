@@ -23,10 +23,10 @@ According to the content generating and data retrieval pattern, Next-NDNVideo ca
 \subsection{Naming Structure}
 Next-NDNVideo produces video and audio stream separately. Every single frame will form a piece of data, so they need a unique name. And before consuming the video and audio content, it should first use the stream information to set up the playing pipeline. The following is an example name of Pre-recorded Streaming. 
 \begin{quote}
-``/ndn/ucla/recordvideo/video-1234/video/content \\\ /8/\%00\%00''
+``/ndn/ucla/ndntube/video-1234/video/content \\\ /8/\%00\%00''
 \end{quote}
 \begin{itemize}
-	\item{\textbf{Routing Prefix:}} ``/ndn/ucla/recordvideo'' is the prefix.
+	\item{\textbf{Routing Prefix:}} ``/ndn/ucla/ndntube'' is the prefix.
 	\item{\textbf{Video Name:}} ``/video-1234'' is a representation for one specific video such as file name.
 	\item{\textbf{Video Mark:}} ``/video'' is a mark to distinguish video and audio.
 	\item{\textbf{Streaminfo Mark:}} ``/content'' represents the frames and ``/streaminfo'' represents the stream information.
@@ -36,7 +36,7 @@ Next-NDNVideo produces video and audio stream separately. Every single frame wil
 
 Then we can conclude that the above name stands for a piece of data which is the segment 0 inside the 8th video frame of video-1234 under the prefix of /come/youtube. The relative stream information name is as following.
 \begin{quote}
-``ndn/ucla/recordvideo/video-1234/video/streaminfo \\\ /pipeline''
+``ndn/ucla/ndntube/video-1234/video/streaminfo \\\ /pipeline''
 \end{quote}
 
 Except for the last component, the others are all introduced above. The last component of Streaminfo is the information type.
