@@ -1,34 +1,43 @@
 %!TEX root = nextndnvideo-tr.tex
 \section{implementation} % (fold)
 \label{sec:implementation}
-Next-NDNVideo is developed using Consumer / Producer API over NDN. This API is an modification version of ndn-cxx library and requires NFD running to forward interests. To compact with Consumer / Producer API and NFD, the project is also written in C++. We use Gstreamer 1.4.3 (other branch not tested) to process media. The supporting platform is UNIX-Like such as Mac OS and Linux. We will explain the implementation details about Live Streaming and Prerecorded respectively.
-\begin{figure}[htbp]
+\begin{figure*}%[htbp]
   \centering
-  \includegraphics[scale=0.3]{live_arch}
+  \includegraphics[scale=0.3]{ndnlive_naming_pro}
   % \vspace{-0.3cm}
-  \caption{Live Streaming Architecture}
-  \label{fig:live_arch}
+  \caption{NDNLive Producer and Consumer Structure}
+  \label{fig:ndnlive_cp}
   %\vspace{-0.2cm}
-\end{figure}
+\end{figure*}
+
+\begin{figure*}%[htbp]
+  \centering
+  \includegraphics[scale=0.3]{ndntube_naming_pro}
+  % \vspace{-0.3cm}
+  \caption{NDNTube Producer and Consumer Structure}
+  \label{fig:ndntube_cp}
+  %\vspace{-0.2cm}
+\end{figure*}
+
+Next-NDNVideo is developed using Consumer / Producer API over NDN. This API is an modification version of ndn-cxx library and requires NFD running to forward interests. To compact with Consumer / Producer API and NFD, the project is also written in C++. We use Gstreamer 1.4.3 (other branch not tested) to process media. The supporting platform is UNIX-Like such as Mac OS and Linux. We will explain the implementation details about Live Streaming and Prerecorded respectively.
+\begin{figure*}[htbp]
+  \centering
+  \includegraphics[scale=0.55]{ndnlive_arch}
+  % \vspace{-0.3cm}
+  \caption{NDNLive Architecture}
+  \label{fig:ndnlive_arch}
+  %\vspace{-0.2cm}
+\end{figure*}
 
 \subsection{Live Streaming}
-The architecture of Live Streaming is shown as Figure~\ref{fig:live_arch}. It has four producers: video stream information producer, video content producer, audio stream information producer and audio content producer. Before the consumer asks for the true video data, it must fetch the live stream information to set up the Gstreamer playing pipeline. The stream information includes frame rate, width, height, stream format and so on. For Live streaming, to inform consumer of the starting frame number, the producer also need to produce the latest frame number if requested. The video and audio are produced and consumed separately, so they must be in separate thread. In both (producer and consumer) side, the Gstreamer should keep running in the background, so Gstreamer needs another thread. 
+The architecture of Live Streaming is shown as Figure~\ref{fig:ndnlive_arch}. It has four producers: video stream information producer, video content producer, audio stream information producer and audio content producer. Before the consumer asks for the true video data, it must fetch the live stream information to set up the Gstreamer playing pipeline. The stream information includes frame rate, width, height, stream format and so on. For Live streaming, to inform consumer of the starting frame number, the producer also need to produce the latest frame number if requested. The video and audio are produced and consumed separately, so they must be in separate thread. In both (producer and consumer) side, the Gstreamer should keep running in the background, so Gstreamer needs another thread. 
 
 [To conclude, in each side we have three threads running at the same time. Components inside one black dotted rectangle belong to the same thread.] ------- have problems! now the consumer has video and audio running in the same thread, and boost scheduler will schdule the consume process every video or audio interval according to the video or audio frame rate. 
 
 The following part will describe some details about media processing, the data retrieval protocols we use and the pseudo code.
 \subsubsection {Media Precessing}
 \paragraph {Producer}
-The producer will capture video from camera and audio from microphone, then produce them frame by frame. The progressing detail is shown as Figure~\ref{fig:live_detail}.
-
-\begin{figure*}%[htbp]
-  \centering
-  \includegraphics[scale=0.55]{live_detail}
-  % \vspace{-0.3cm}
-  \caption{Live Streaming Media Processing}
-  \label{fig:live_detail}
-  %\vspace{-0.2cm}
-\end{figure*}
+The producer will capture video from camera and audio from microphone, then produce them frame by frame.
 
 The raw video pictures captured by camera would be transferred to \textit{Encoder\_v} component and will be encoded into \textit{H264} format. Then the encoded video is transmitted into \textit{Parser\_v} to be parsed into frames (\textit{B, P or I frame}). The last component is the \textit{Producer\_v}, which is in charge of producing video frame by frame.
 
@@ -148,25 +157,16 @@ At the same time, although before the consumer starts to consume frames, it will
 \end{algorithm}
 
 \subsection{Pre-recorded Streaming}
-\begin{figure}%[htbp]
+\begin{figure*}[htbp]
   \centering
-  \includegraphics[scale=0.3]{record_arch}
+  \includegraphics[scale=0.55]{ndntube_arch}
   % \vspace{-0.3cm}
-  \caption{Pre-recorded Streaming Architecture}
-  \label{fig:record_arch}
+  \caption{NDNTube Architecture}
+  \label{fig:ndntube_arch}
   %\vspace{-0.2cm}
-\end{figure}
+\end{figure*}
 
-The Pre-recorded Streaming architecture is slightly different from Live Streaming (Figure~\ref{fig:record_arch}). Firstly, \textbf{Repo-ng} is added in the producer side to provide the constant storage for video and audio data. Secondly, the playing list producer and consumer are introduced. This producer is to produce the playing list, which records the video names in one specific directory of producer. Because the video files could be added or deleted anytime, every time the producer detected the change of the directory, it will produce a new playing list with the same name except for appending a new timestamp. Figure~\ref{fig:list_naming} is one list naming example. 
-
-\begin{figure}%[htbp]
-  \centering
-  \includegraphics[scale=0.5]{list_naming}
-  % \vspace{-0.3cm}
-  \caption{Playing List Naming}
-  \label{fig:list_naming}
-  %\vspace{-0.2cm}
-\end{figure}
+The Pre-recorded Streaming architecture is slightly different from Live Streaming (Figure~\ref{fig:ndntube_arch}). Firstly, \textbf{Repo-ng} is added in the producer side to provide the constant storage for video and audio data. Secondly, the playing list producer and consumer are introduced. This producer is to produce the playing list, which records the video names in one specific directory of producer. Because the video files could be added or deleted anytime, every time the producer detected the change of the directory, it will produce a new playing list with the same name except for appending a new timestamp.
 
 The other two producers are almost the same with Live Streaming  One producer produces the stream information of the recorded video. The other takes charge of producing the frames, one slight difference is that we produce audio frames after video frames. This is to avoid the writing congestion of repo. The difference is that the stream info and frame data will be inserted into \textbf{Repo-ng}, but not attached to the NDN Network. Because different from live streaming, the pre-recorded video is permanent. Once the data was produced and the same data could be requested many times. However, for the live streaming, it just keeps producing and doesn't care about the data it produced several minutes ago. So the video file should be only produced once then written into Repo-ng and should not be produced again. The Repo-ng will respond to the interests. This can also relieve the producing pressure of producer.  
 
@@ -176,16 +176,7 @@ The consumer part should send interests to request the playing list in advance. 
 
 \subsubsection{Media Processing}
 
-\begin{figure*}%[htbp]
-  \centering
-  \includegraphics[scale=0.55]{record_detail}
-  % \vspace{-0.3cm}
-  \caption{Pre-recorded Streaming Media Processing}
-  \label{fig:record_detail}
-  %\vspace{-0.2cm}
-\end{figure*}
-
-The main difference from live streaming is the video source (Figure~\ref{fig:record_detail}). The pre-recorded video source is the video file. Gstreamer should first read video file then pass it to the \textit{Demuxer} component to separate video and audio stream. Because the video file is already encoded, so there is no \textit{Encoder} component here. The separate encoded video or audio is pushed into the \textit{Parser} to generate frames. The frames will be produced by Consumer / Producer API and inserted into \textit{Repo-ng}. The API will handle the segmentation automatically. The media processing of consumer part is the same with live streaming.
+The main difference from live streaming is the video source. The pre-recorded video source is the video file. Gstreamer should first read video file then pass it to the \textit{Demuxer} component to separate video and audio stream. Because the video file is already encoded, so there is no \textit{Encoder} component here. The separate encoded video or audio is pushed into the \textit{Parser} to generate frames. The frames will be produced by Consumer / Producer API and inserted into \textit{Repo-ng}. The API will handle the segmentation automatically. The media processing of consumer part is the same with live streaming.
 
 There also exists the synchronization problem between video and audio. As we describe above~\ref{par:sync}, the Gstreamer will handle the synchronization part as long as we give the video and audio frame correct timestamps. In live streaming, it is the capturing component who stamps the frames. In pre-recorded streaming, it is the \textit{Dumxer} who is responsible for time stamping. Once the media data flows through \textit{Dumxer}, this component will separate the video stream and audio stream according to their file type such as \textit{MP4} and adding the time information in each \textit{GstBuffer}.
 

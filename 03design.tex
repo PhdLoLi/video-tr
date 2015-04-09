@@ -3,16 +3,8 @@
 \section{design} % (fold)
 \label{sec:design}
 \subsection{Architecture}
-Next-NDNVideo is based on Consumer / Producer API over Named Data Networking. It contains two kinds of roles - producer and consumer. The whole architecture (Figure~\ref{fig:arch}) is described below.
+Next-NDNVideo is based on Consumer / Producer API over Named Data Networking. It contains two kinds of roles - producer and consumer. The whole architecture (Figure~\ref{fig:ndnlive_cp}) is described below.
 
-\begin{figure*}%[htbp]
-  \centering
-  \includegraphics[scale=0.55]{architecture}
-  % \vspace{-0.3cm}
-  \caption{Architecture of Next-NDNVideo}
-  \label{fig:arch}
-  %\vspace{-0.2cm}
-\end{figure*}
 
 The producer is responsible for generating video and audio streaming. It behaves as the content publisher. We use Gstreamer to extract the video and audio frames from video source. Then we call Consumer / Producer API to encapsulate the data frames into NDN packets. In this case these NDN packets are available to fetch. The producer part can work even without being attached to the NDN network. The producer's packages will be cached in the \textit{Send Buffer} the API maintained and \textit{Content Store} of NFD\cite{nfd-guide}. Also the NDN packets can be written into Repo\cite{repo-ng}. Then Repo will take charge of satisfying the data request.
 
@@ -22,6 +14,24 @@ According to the content generating and data retrieval pattern, Next-NDNVideo ca
 
 \subsection{Naming Structure}
 Next-NDNVideo produces video and audio stream separately. Every single frame will form a piece of data, so they need a unique name. And before consuming the video and audio content, it should first use the stream information to set up the playing pipeline. The following is an example name of Pre-recorded Streaming. 
+\begin{figure}%[htbp]
+  \centering
+  \includegraphics[scale=0.3]{ndnlive_naming}
+  % \vspace{-0.3cm}
+  \caption{NDNLive Naming Tree}
+  \label{fig:ndnlive_naming}
+  %\vspace{-0.2cm}
+\end{figure}
+
+\begin{figure}%[htbp]
+  \centering
+  \includegraphics[scale=0.3]{ndntube_naming}
+  % \vspace{-0.3cm}
+  \caption{NDNLive Naming Tree}
+  \label{fig:ndntube_naming}
+  %\vspace{-0.2cm}
+\end{figure}
+
 \begin{quote}
 ``/ndn/ucla/ndntube/video-1234/video/content \\\ /8/\%00\%00''
 \end{quote}
