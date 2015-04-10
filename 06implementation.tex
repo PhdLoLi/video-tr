@@ -35,7 +35,7 @@ The architecture of Live Streaming is shown as Figure~\ref{fig:ndnlive_arch}. It
 [To conclude, in each side we have three threads running at the same time. Components inside one black dotted rectangle belong to the same thread.] ------- have problems! now the consumer has video and audio running in the same thread, and boost scheduler will schdule the consume process every video or audio interval according to the video or audio frame rate. 
 
 The following part will describe some details about media processing, the data retrieval protocols we use and the pseudo code.
-\subsubsection {Media Precessing}
+\subsubsection {Media Processing}
 \paragraph {Producer}
 The producer will capture video from camera and audio from microphone, then produce them frame by frame.
 

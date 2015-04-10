@@ -1,6 +1,6 @@
 % \documentclass[10pt, conference, compsocconf]{IEEEtran}
 %\documentclass[conference]{IEEEtran}
-\documentclass[letter]{sig-alternate}
+\documentclass{sig-alternate}
 \usepackage{eso-pic,xcolor}
 \makeatletter
 %
@@ -40,7 +40,7 @@
 
 \pagestyle{headings}
 
-\title{NDNLive and NDNTube: live and pre-recorded \\\ video streaming over NDN}
+\title{NDNLive and NDNTube: Live and Pre-recorded \\\ Video Streaming over NDN}
 
 \author{
 %Paper \#231, 13 pages
@@ -61,7 +61,7 @@ Lijing Wang \\ {\normalsize Tsinghua University} \\ {\normalsize wanglj11@mails.
 \usepackage{graphicx}
 % \usepackage[colorlinks]{hyperref}
 \usepackage[]{hyperref}
-\usepackage{breakurl}
+%\usepackage{breakurl}
 \usepackage{url}
 \usepackage[nocompress]{cite}
 \usepackage{amsmath}
@@ -73,7 +73,7 @@ Lijing Wang \\ {\normalsize Tsinghua University} \\ {\normalsize wanglj11@mails.
 \usepackage{multirow}
 \usepackage{times}
 \usepackage{color}
-
+\paperheight=11in
 \graphicspath{{figures/}}
 
 \begin{document}
@@ -90,11 +90,12 @@ Lijing Wang \\ {\normalsize Tsinghua University} \\ {\normalsize wanglj11@mails.
 %\end{IEEEkeywords}
 \input{01introduction}
 \input{02background}
-\input{03design}
-\input{04implementation}
-\input{05evaluation}
-\input{06comparison}
-\input{07conclusion}
+\input{03prior_work}
+\input{04design_goals}
+\input{05architecture}
+\input{06implementation}
+\input{07evaluation}
+\input{08conclusion}
 
 %\input{10-acknowledgement}
 
