@@ -2,5 +2,33 @@
 \vspace{0.3cm}
 \section{design goals} % (fold)
 \label{sec:design_goals}
+The aim of developing NDNLive and NDNTube is to rewrite the NDNVideo project by using Consumer / Producer API and therefore can be compacted with ndn-cxx libary\cite{ndn-cxx} and NFD\cite{nfd-guide}. As a typical use case, these two projects hope to give a careful examination of the design and implementation of Consumer / Producer API. At the same time, NDNLive and NDNTube can satisfy all the design goals of the previous NDNVideo~\cite{ndnvideo}:
+
+\begin{itemize}
+\item{\textit{``Live and pre-recorded video\&audio streaming to multiple users''}}
+
+NDNLive is to provide the live video\&audio streaming to multiple users and guarantee the fluency of the streaming. NDNTube is to provide a Youtube-like service, which produces the pre-recorded video for multiple users to choose and playback. The quality of video should be guaranteed.
+
+\item{\textit{``Random access based on actual location in the video''}}
+
+We use frame as the basic operation unit. Most time the relationship between time and frame number can be easily discovered. For example, the video and audio rate are fixed for one given pre-recorded video. Then we can compute the related frame number according to the time information and frame rate. Because we won't store the live stream, so we only support random access for NDNTube.
+
+\item{\textit{``Ability to synchronize playback of multiple consumers''}}
+
+The synchronization is guaranteed by Gstreamer. Every frame we extracted is in form of \textit{GstBuffer}~\cite{Gstbuffer} (Data-passing buffer type of Gstreamer), which contains timestamp information. Then video and audio can be synchronized when playing back according to the timestamp information. Although we don't use Gstreamer, the relationship between time and frame is naturally maintained by video or audio encoded format. The synchronization could be solved relying on these relations.
+
+\item{\textit{``Passive consumers (no session semantics or negotiation'')}}
+
+Every time the consumer want to play back no matter the NDNLive or NDNTube, it can just send interest requesting the video content as long as it obtain the naming information of producer. There is no session semantics or negotiation between producer and consumer. For example, NDNTube can work well even without frame producer attached to the NDN Network.
+
+\item{\textit{``Archival access to live streams''}}
+
+The live stream can also be written into the Repo. Let Repo take care of the Interest satisfaction. Then the archival access to live stream is possible.
+
+\item{\textit{``Content verification and provenance''}}
+
+In NDN, every package will be signed by the original producer, the consumer part should first verify if it belongs to the original producer. If it failed, the package will be just regarded. The Consumer / Producer API does some optimization to speed up the signing progress, we will talk about the detail in Section~\ref{sec:implementation}.
+
+\end{itemize} 
 
 % section section_name (end)

@@ -1,12 +1,12 @@
 %!TEX root = nextndnvideo-tr.tex
 \vspace{0.3cm}
-\section{design} % (fold)
-\label{sec:design}
+\section{Architecture} % (fold)
+\label{sec:arch}
 \subsection{Architecture}
 Next-NDNVideo is based on Consumer / Producer API over Named Data Networking. It contains two kinds of roles - producer and consumer. The whole architecture (Figure~\ref{fig:ndnlive_cp}) is described below.
 
 
-The producer is responsible for generating video and audio streaming. It behaves as the content publisher. We use Gstreamer to extract the video and audio frames from video source. Then we call Consumer / Producer API to encapsulate the data frames into NDN packets. In this case these NDN packets are available to fetch. The producer part can work even without being attached to the NDN network. The producer's packages will be cached in the \textit{Send Buffer} the API maintained and \textit{Content Store} of NFD\cite{nfd-guide}. Also the NDN packets can be written into Repo\cite{repo-ng}. Then Repo will take charge of satisfying the data request.
+The producer is responsible for generating video and audio streaming. It behaves as the content publisher. We use Gstreamer to extract the video and audio frames from video source. Then we call Consumer / Producer API to encapsulate the data frames into NDN packets. In this case these NDN packets are available to fetch. The producer part can work even without being attached to the NDN network. The producer's packages will be cached in the \textit{Send Buffer} the API maintained and \textit{Content Store} of NFD. Also the NDN packets can be written into Repo. Then Repo will take charge of satisfying the data request.
 
 Every time the consumer wants to play back some video, it should send interests to fetch the data by using one of the Data Retrieval Protocol \textit{(SDR/UDR/RDR)}. When Consumer / Producer API brings data back, the call back function will be triggered to retrieve data. The reassembled video or audio frame will be passed to Gstreamer for further processing. Finally, Gstreamer will provide the decoded data to video player for playing back. Because all NDN applications are interest-driven, only the consumer keeps sending interest, it can fetch the data and play it back.
 
