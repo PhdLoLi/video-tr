@@ -20,14 +20,7 @@
 \end{figure*}
 
 Next-NDNVideo is developed using Consumer / Producer API over NDN. This API is an modification version of ndn-cxx library and requires NFD running to forward interests. To compact with Consumer / Producer API and NFD, the project is also written in C++. We use Gstreamer 1.4.3 (other branch not tested) to process media. The supporting platform is UNIX-Like such as Mac OS and Linux. We will explain the implementation details about Live Streaming and Prerecorded respectively.
-\begin{figure*}[htbp]
-  \centering
-  \includegraphics[scale=0.55]{ndnlive_arch}
-  % \vspace{-0.3cm}
-  \caption{NDNLive Architecture}
-  \label{fig:ndnlive_arch}
-  %\vspace{-0.2cm}
-\end{figure*}
+
 
 \subsection{Live Streaming}
 The architecture of Live Streaming is shown as Figure~\ref{fig:ndnlive_arch}. It has four producers: video stream information producer, video content producer, audio stream information producer and audio content producer. Before the consumer asks for the true video data, it must fetch the live stream information to set up the Gstreamer playing pipeline. The stream information includes frame rate, width, height, stream format and so on. For Live streaming, to inform consumer of the starting frame number, the producer also need to produce the latest frame number if requested. The video and audio are produced and consumed separately, so they must be in separate thread. In both (producer and consumer) side, the Gstreamer should keep running in the background, so Gstreamer needs another thread. 
@@ -48,6 +41,16 @@ The consumer also processes video and audio separately.
 
 For video, the \textit{Consumer\_v} component keeps sending interests to fetch the video data. And it will get data retrieved frame by frame. Then the video frame will be thrown to the \textit{Decoder\_v} to get decoded into the format which the \textit{Player\_v} can play it back.
 For audio, the \textit{Consumer\_a} component fetches the audio data by sending audio interests. The retrieved audio frame will be transferred to \textit{Decoder\_a} to get decoded. The decoded audio will be sent to \textit{Player\_a}. At the end, the \textit{Player\_v} and \textit{Player\_a} should play video and audio together.
+
+Except for the last component, the others are all introduced above. The last component of Stream\_info is the information type.
+\begin{itemize}
+  \item{\textbf{Info Type:}} 
+  \begin{itemize}
+    \item{\textbf{pipeline:}} means that it asks for essential information to set up the playing back pipeline. 
+    \item{\textbf{current\_id:}} means that it asks for the current frame number of this video. This is used only by NDNLive.
+    \item{\textbf{final\_id:}} means that it asks for the final frame number of this video. This is used only by NDNTube. 
+  \end{itemize}
+\end{itemize}
 
 \paragraph {Synchronization between video and audio}
 \label{par:sync}
@@ -156,17 +159,9 @@ At the same time, although before the consumer starts to consume frames, it will
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Pre-recorded Streaming}
-\begin{figure*}[htbp]
-  \centering
-  \includegraphics[scale=0.55]{ndntube_arch}
-  % \vspace{-0.3cm}
-  \caption{NDNTube Architecture}
-  \label{fig:ndntube_arch}
-  %\vspace{-0.2cm}
-\end{figure*}
 
-The Pre-recorded Streaming architecture is slightly different from Live Streaming (Figure~\ref{fig:ndntube_arch}). Firstly, \textbf{Repo-ng} is added in the producer side to provide the constant storage for video and audio data. Secondly, the playing list producer and consumer are introduced. This producer is to produce the playing list, which records the video names in one specific directory of producer. Because the video files could be added or deleted anytime, every time the producer detected the change of the directory, it will produce a new playing list with the same name except for appending a new timestamp.
+
+The Pre-recorded Streaming architecture is slightly different from Live Streaming . Firstly, \textbf{Repo-ng} is added in the producer side to provide the constant storage for video and audio data. Secondly, the playing list producer and consumer are introduced. This producer is to produce the playing list, which records the video names in one specific directory of producer. Because the video files could be added or deleted anytime, every time the producer detected the change of the directory, it will produce a new playing list with the same name except for appending a new timestamp.
 
 The other two producers are almost the same with Live Streaming  One producer produces the stream information of the recorded video. The other takes charge of producing the frames, one slight difference is that we produce audio frames after video frames. This is to avoid the writing congestion of repo. The difference is that the stream info and frame data will be inserted into \textbf{Repo-ng}, but not attached to the NDN Network. Because different from live streaming, the pre-recorded video is permanent. Once the data was produced and the same data could be requested many times. However, for the live streaming, it just keeps producing and doesn't care about the data it produced several minutes ago. So the video file should be only produced once then written into Repo-ng and should not be produced again. The Repo-ng will respond to the interests. This can also relieve the producing pressure of producer.  
 
