@@ -143,7 +143,7 @@ The boost scheduler will schedule the consume process every video or audio inter
 \label{par:signing_and_verification}
 Every NDN package should be signed with the producer's private key, only the verified frame can be retrieved successfully. But signing and verification are very time consuming. Consumer / Producer uses \textit{Manifest} \cite{api-tr} to improve the signing and verification performance. 
 
-Instead of signing every segment in one frame, the producer only needs signing and verifying the Manifest. This option can be easily turned on or off by set \textit{EMBEDED\_\\\ MANIFEST} as \textit{TRUE} or \textit{FALSE}.
+Instead of signing every segment in one frame, the producer only needs signing and verifying the Manifest. This option can be easily turned on or off by set \textit{EMBEDED\_\\\ MANIFEST} as TRUE or FALSE.
 % paragraph signing_and_verification (end){Signing and Verification}
 
 \paragraph{Synchronization between video and audio}
@@ -163,7 +163,7 @@ When video and audio are captured, they are timestamped by the Gstreamer. The ti
 \end{figure*}
 Although NDNTube is very similar to NDNLive, data production and retrieval pattern are quite different from NDNLive. We will describe them in detail in this section.
 
-\begin{algorithm}%[ht]
+\begin{algorithm}[ht]
 \caption{NDNTube producer}
 \label{alg:recordproducer}
 \begin{algorithmic}[3]
@@ -190,7 +190,7 @@ Although NDNTube is very similar to NDNLive, data production and retrieval patte
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}%[ht]
+\begin{algorithm}[ht]
 \caption{NDNTube consumer}
 \label{alg:recordconsumer}
 \begin{algorithmic}[4]

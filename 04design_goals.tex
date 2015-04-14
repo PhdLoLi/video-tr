@@ -19,15 +19,15 @@ The synchronization is guaranteed by Gstreamer. Every frame we extracted is in f
 
 \item{\textit{``Passive consumers (no session semantics or negotiation)''}}
 
-Every time the consumer want to play back no matter the NDNLive or NDNTube, it can just send interest requesting the video content as long as it obtain the naming information of producer. There is no session semantics or negotiation between producer and consumer. For example, NDNTube can work well even without frame producer attached to the NDN Network.
+Every time the consumer want to play back the video, it can just send Interest requesting the video content as long as it obtains the naming information of producers. There is no session semantics or negotiation between producer and consumer. For example, NDNTube can work well even without frame producer attached to the NDN Network.
 
 \item{\textit{``Archival access to live streams''}}
 
-The live stream can also be written into the Repo. Let Repo take care of the Interest satisfaction. Then the archival access to live stream is possible.
+The live stream can also be written into the Repo. And Repo will take over the duty of Interest satisfaction. Then the archival access to live stream is possible.
 
 \item{\textit{``Content verification and provenance''}}
 
-In NDN, every package will be signed by the original producer, the consumer part should first verify if it belongs to the original producer. If it failed, the package will be just regarded. The Consumer / Producer API does some optimization to speed up the signing progress, we will talk about the detail in Section~\ref{sec:implementation}.
+In NDN, every package will be signed by the original producer, the consumer should first verify the data to detect if it belongs to the producer. If it failed, the package will be just regarded. The Consumer / Producer API does some optimization to speed up the signing progress, we will talk about the details in Section~\ref{par:signing_and_verification}.
 
 \end{itemize} 
 

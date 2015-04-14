@@ -2,7 +2,7 @@
 \vspace{0.3cm}
 \section{Design} % (fold)
 \label{sec:arch}
-NDNLive and NDNTube are all based on Consumer / Producer API over Named Data Networking. They contains two kinds of roles - producer and consumer. According to the content generating and data retrieval pattern, their architecture and namespace are described separately below. 
+NDNLive and NDNTube are all based on Consumer / Producer API over Named Data Networking. They contains two kinds of roles - producer and consumer. According to the content production and data retrieval pattern, their architecture and namespace will be described below separately. 
 
 \subsection{Architecture}
 \begin{figure*}[htbp]
@@ -24,7 +24,7 @@ NDNLive is \textit{Live Streaming}, which the producer captures video from camer
   \label{fig:ndntube_arch}
   %\vspace{-0.2cm}
 \end{figure*}
-NDNTube is \textit{Pre-recorded Streaming}, which is more like Youtube. The video source is the pre-recorded video file. As we described in Section\ref{sec:background}, the video and audio frames associated with this video file will be written into Repo in advance. And Repo will take over the duty of responding to the Interests request frames. Then there is no need for the frame producer to attach to the NDN Network. Another difference from NDNLive, in this case the consumer must first know what video files the producer has. So the consumer should send interest asking for the latest playing list and then chose one to play. So the producer only needs to keep publishing the latest playing list containing all the names of video files to the NDN Network (Figure~\ref{fig:ndntube_arch}).
+NDNTube is \textit{Pre-recorded Streaming}, which is more like Youtube. The video source is the pre-recorded video file. As we described in Section\ref{sec:repo}, the video and audio frames associated with this video file will be written into Repo in advance. And Repo will take over the duty of responding to the Interests requesting for frames. Then there is no need for the frame producer to attach to the NDN Network. Another difference from NDNLive, in this case the consumer must know what video files the producer has. So the consumer should send interest asking for the latest playlist and then chose one to play. So the producer only needs to keep publishing the latest playlist containing all the names of video files to the NDN Network (Figure~\ref{fig:ndntube_arch}).
 
 \subsection{Namespace}
 

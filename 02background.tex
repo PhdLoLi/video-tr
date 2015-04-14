@@ -2,6 +2,7 @@
 \section{background} % (fold)
 \label{sec:background}
 \subsection{Consumer / Producer API}
+\label{ssub:cpapi}
 Consumer-Producer API~\cite{api-tr} provides a generic programming interface to NDN communication protocols and architectural modules. A consumer context associates an NDN name prefix with various data fetching, transmission, and content verification parameters, and integrates processing of Interest and Data packets on the consumer side. A producer context associates an NDN name prefix with various packet framing, caching, content-based security, and namespace registration parameters, and integrates processing of Interest and Data packets on the producer side.
 
 In NDNlive and NDNtube, the video publisher consists of multiple producers generating video and audio frames separately. The corresponding video players consist of multiple consumers sending Interests for the video and audio frames. Consumer / Producer API simplifies the application logic at both sides: media production and media consumption. Since video frames are too large to be encapsulated by a single Data packet, the media production pipeline has to include a content segmentation step in order to split the content into multiple Data packets. Producer API provides this segmentation functionality. At the same time, since a video frame cannot be retrieved by a single Interest packet, UDR and RDR protocols behind the Consumer API automatically pipeline Interest packets and solve other tasks related to the retrieval of the application frame. 
@@ -19,6 +20,7 @@ In NDNTube, the source for video and audio streams is an mp4 file containing \te
 %Because we need to extract the frames from the video source, so now we only support \textit{H264} video encoded format and  encoded format for NDNLive and \textit{MP4} file format for NDNTube. 
 
 \subsection{Repo-ng}
+\label{sec:repo}
 NDNLive streams the captured video and audio non-stop. Therefore, the media publisher just keeps producing new frames and does not care about the data it produced several minutes ago. The consumer is also interested only in recent video and audio frames. As long as the producer is attached to the NDN network, it  will serve the incoming Interests. %The consumer can get the data back and play them back immediately.
 
 NDNTube publishes the video only once --- all Data packets corresponding to audio and video frames are permanent and never change after the initial publication. Since the same video could be requested multiple times by different users, it is reasonable to store the produced Data packets in a `database' which is exposed to the requests from the network. Otherwise, every time a different user requests the same video, the corresponding video and audio Data packets would have to be republished (and signed) in case NDN cache has not been able to satisfy these Interests.
