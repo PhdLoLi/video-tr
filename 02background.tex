@@ -1,5 +1,7 @@
 %!TEX root = nextndnvideo-tr.tex
 \section{background} % (fold)
+In this section, we talk about how NDNLive and NDNtube make use of external NDN and media processing libraries and other major NDN components. 
+
 \label{sec:background}
 \subsection{Consumer / Producer API}
 \label{ssub:cpapi}
@@ -19,7 +21,7 @@ In NDNTube, the source for video and audio streams is an mp4 file containing \te
 
 %Because we need to extract the frames from the video source, so now we only support \textit{H264} video encoded format and  encoded format for NDNLive and \textit{MP4} file format for NDNTube. 
 
-\subsection{Repo-ng}
+\subsection{Repo}
 \label{sec:repo}
 NDNLive streams the captured video and audio non-stop. Therefore, the media publisher just keeps producing new frames and does not care about the data it produced several minutes ago. The consumer is also interested only in recent video and audio frames. As long as the producer is attached to the NDN network, it  will serve the incoming Interests. %The consumer can get the data back and play them back immediately.
 

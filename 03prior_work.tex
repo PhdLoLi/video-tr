@@ -4,11 +4,12 @@
 \begin{figure}%[htbp]
   \centering
   \includegraphics[scale=0.3]{ndnvideo_naming}
-  % \vspace{-0.3cm}
+  \vspace{-0.3cm}
   \caption{Prior NDNVideo Naming Space}
   \label{fig:ndnvideo_naming}
-  %\vspace{-0.2cm}
+  \vspace{-0.2cm}
 \end{figure}
+
 An similar work called NDNVideo was described in this technical report~\cite{ndnvideo}. Their aims are also to provide live and pre-recorded video streaming over NDN. They use Gstreamer to process media and Repo as the permanent storage. Producer and consumer concepts are the same, too. 
 
 But the way how we handle framing is quite different. In the prior NDNVideo project, the video or audio stream is chopped into fixed-size segments . A mapping between time and segment number is introduced to keep the video and audio synced (Figure~\ref{fig:ndnvideo_naming}). Seeking fuction is also supported by the time-segment mapping mechanism. 
@@ -31,4 +32,3 @@ The application level framing also provides the flexibility to the video consume
 	\caption{Comparison with NDNVideo}
 	\label{table:comparison}
 \end{table}
-% section comparison (end)

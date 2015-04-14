@@ -4,16 +4,6 @@
 \label{sec:arch}
 NDNLive and NDNTube are all based on Consumer / Producer API over Named Data Networking. They contains two kinds of roles - producer and consumer. According to the content production and data retrieval pattern, their architecture and namespace will be described below separately. 
 
-\subsection{Architecture}
-\begin{figure*}[htbp]
-  \centering
-  \includegraphics[scale=0.55]{ndnlive_arch}
-  % \vspace{-0.3cm}
-  \caption{NDNLive Architecture}
-  \label{fig:ndnlive_arch}
-  %\vspace{-0.2cm}
-\end{figure*}
-
 NDNLive is \textit{Live Streaming}, which the producer captures video from camera and audio from microphone, then passes them to Gstreamer to get raw data encoded and extract the video and audio frames. At last the frames are published to NDN Network by Consumer / Producer API. The consumer can send interest asking for the video stream at any time, it will get the latest video and audio frames, then pass them to Gstreamer to get decoded and at the end the player can play them back (Figure~\ref{fig:ndnlive_arch}). 
 
 \begin{figure*}[htbp]
