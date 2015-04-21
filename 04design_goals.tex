@@ -1,12 +1,5 @@
 %!TEX root = nextndnvideo-tr.tex
 
-
-
-\vspace{0.3cm}
-\section{design goals} % (fold)
-\label{sec:design_goals}
-UCLA REMAP lab put efforts in building NDNVideo~\cite{ndnvideo} that was one of the first showcases supporting the claim of the possibility of video streaming over NDN. The later changes in the packet format and the development of the new NDN forwarding daemon (NFD~\cite{nfd-guide}) made this implementation of video streaming software obsolete. 
-
 \begin{figure*}[htbp]
   \centering
   \includegraphics[scale=0.55]{ndntube_arch}
@@ -15,6 +8,10 @@ UCLA REMAP lab put efforts in building NDNVideo~\cite{ndnvideo} that was one of 
   \label{fig:ndntube_arch}
   %\vspace{-0.2cm}
 \end{figure*}
+
+\section{design goals} % (fold)
+\label{sec:design_goals}
+UCLA REMAP lab put efforts in building NDNVideo~\cite{ndnvideo} that was one of the first showcases supporting the claim of the possibility of video streaming over NDN. The later changes in the packet format and the development of the new NDN forwarding daemon (NFD~\cite{nfd-guide}) made this implementation of video streaming software obsolete. 
 
 NDNlive and NDNtube is the new effort of UCLA IRL lab to have similar functionality to NDNvideo compatible with the new packet format, new forwarder and new application libraries, such as Consumer / Producer API. The secondary goal of developing these application is to provide more complete examples for application developers learning the new Consumer / Producer API.
 

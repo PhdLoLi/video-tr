@@ -2,21 +2,21 @@
 \vspace{0.3cm}
 \section{Design} % (fold)
 \label{sec:arch}
-NDNLive and NDNTube are all based on Consumer / Producer API over Named Data Networking. They contain two kinds of roles - producer and consumer. According to the content production and data retrieval pattern, their architecture and namespace will be described separately in this section. 
+NDNlive and NDNtube are composed of two roles: publisher and player. Both publisher and player make use of appropriate parts of Consumer / Producer API to simplify the design of the system.
 
-\paragraph{NDNLive Architecture} % (fold)
+\paragraph{NDNlive architecture} % (fold)
 \vspace{0.3cm}
 \label{par:ndnlive_arch}
-The architecture of NDNLive is shown as (Figure~\ref{fig:ndnlive_arch}), and is illustrated as below:
+Figure~\ref{fig:ndnlive_arch} illustrates the architecture of NDNLive, which can be summarized as follows:
 
 \begin{itemize}
-  \item \textit{Producer}
+  \item \textit{Publisher}
 
-  NDNLive is \textit{Live Streaming}, which the producer captures video from camera and audio from microphone, then passes them to Gstreamer to get raw data encoded and extract the video and audio frames. At last the frames are published to NDN Network by Consumer / Producer API. 
+  NDNlive is a \textit{live streaming} application, therefore the publisher captures video from camera and audio from microphone, and passes it to the Gstreamer to get raw data encoded and extracted as video and audio frames. The video and audio frames are published to NDN network with Consumer / Producer API. 
 
-  \item \textit{Consumer}
+  \item \textit{Player}
 
-  The consumer can send interest asking for the video stream at any time, it will get the latest video and audio frames, then pass them to Gstreamer to get decoded and at the end the player can play them back. 
+  The video player uses the UDR protocol of Consumer / Producer API protocol suite to generate Interest packets for specific video and audio frames, which are later passed to the Gstreamer for decoding purposes. However, the player application is responsible for timing the consumption of individual frames.
 
 \end{itemize}
 
@@ -25,52 +25,47 @@ The architecture of NDNLive is shown as (Figure~\ref{fig:ndnlive_arch}), and is 
 \paragraph{NDNTube Architecture} % (fold)
 \vspace{0.3cm}
 \label{par:ndntube_arch}
-The architecture of NDNLive is shown as (Figure~\ref{fig:ndntube_arch}), and is illustrated as below:
+Figure~\ref{fig:ndntube_arch} illustrates the architecture of NDNtube, which can be summarized as follows:
 \begin{itemize}
-  \item \textit{Producer}
+  \item \textit{Publisher}
 
-    NDNTube is \textit{Pre-recorded Streaming}, which is more like Youtube. The video source is the pre-recorded video file. As we described in Section~\ref{sec:repo}, the video and audio frames associated with this video file will be written into Repo in advance. And Repo will take over the duty of responding to the Interests requesting for frames. Then there is no need for the frame producer being attached to the NDN Network. 
+    NDNTube is a \textit{pre-recorded media streaming} application, therefore the publisher works with existing video files stored on the disk. As we described in Section~\ref{sec:repo}, the publisher reads the file from the disk, extracts video and audio frames from it and publishes these frames to the Repo. After that, the Repo takes over the duty of responding to the Interests requesting the frames. 
+%Then there is no need for the frame producer being attached to the NDN Network. 
 
-  \item \textit{Consumer}
+  \item \textit{Player}
 
-    Another difference from NDNLive, in this case the consumer must know what video files the producer has. So the consumer should send Interest asking for the latest playlist and then chose one to play. So the producer only needs to keep publishing the latest playlist containing all the names of video files to the NDN Network.
+    Comparing to NDNlive, NDNtube player has an additional functionality for displaying the list of the currently available video resources (e.g. playlist). In order to support this feature, NDNtube publisher keeps publishing the updated playlist every time a new video is added to the collection.
 
 \end{itemize}
 
 
-\subsection{Namespace}
+\subsection{Namespace design}
 
-NDNLive and NDNTube produce video and audio stream separately. Every single frame need a unique name. And before consuming the video and audio content, it should first use the stream information to set up the playing pipeline. There are many components in common between them. 
+NDNlive and NDNtube separate video and audio streams from each other. Each stream consists of multiple frames and every single frame consists of multiple segments carrying unique names. The following examples provide the details of the naming schemes used in NDNlive and NDNtube applications.
+%Before consuming the video and audio content, it should first use the stream information to set up the playing pipeline. There are many components in common between them. 
 
-\paragraph{NDNLive Naming} % (fold)
+\paragraph{NDNlive namespace} % (fold)
 \label{par:ndnlive_naming}
 \vspace{0.3cm}
-The following is an example name of NDNLive. 
+The following name is a typical name of the Data segment that corresponds to a video frame.
 
 \begin{quote}
 ``/ndn/ucla/ndnlive/stream-1/video/content/8/\%00\%00''
 \end{quote}
 \begin{itemize}
-	\item{\textbf{Routing Prefix:}} ``/ndn/ucla/ndnlive'' is the prefix.
-	\item{\textbf{Stream\_ID:}} ``/stream-1'' is a representation for one specific live stream, because there could be several producers under the same prefix to publish different live stream.
-	\item{\textbf{Video or Audio:}} ``/video'' is a mark to distinguish video and audio.
-	\item{\textbf{Content or Stream\_Info:}} ``/content'' represents the frames and ``/stream\_info'' represents the stream information.
-	\item{\textbf{Frame Number:}} ``/8'' is frame number, which stream\_info does not have this component.
-	\item{\textbf{Segment Number:}} ``\%00\%00'' is the segment number. Because most video frames would contain more than one segment, this component is essential. As we mentioned before (Section~\ref{ssub:cpapi}), the Consumer / Producer API will do the segmentation processing, so the segment number will be appended by the API automatically. But audio frame in NDNLive is always smaller than one segment. There is no segment number for audio frame, and stream\_info does not have this component, neither.
+	\item{\textbf{Routable Prefix:}} ``/ndn/ucla/ndnlive'' is the routable prefix used by NFD forwarders to direct  Interest packets towards NDNlive publisher.
+	\item{\textbf{Stream\_ID:}} ``/stream-1'' is a stream identifier used distinguish among live streams. Note, that stream ID could be a part of the routable prefix.
+	\item{\textbf{Video or Audio:}} ``/video'' is a markup component to distinguish between video and audio streams.
+	\item{\textbf{Content or Stream\_Info:}} All frames go under ``/content'' prefix, and all stream information go under ``/stream\_info'' prefix.
+	\item{\textbf{Frame number:}} ``/8'' is frame number used to identify each individual video and audio frame.
+	\item{\textbf{Segment number:}} ``\%00\%00'' is the segment number required to identify each individual Data segment, because most video frames are too large to fit in a single Data packet, and have to be broken into segments. 
+	
+%contain more than one segment, this component is essential. As we mentioned before (Section~\ref{ssub:cpapi}), the Consumer / Producer API will do the segmentation processing, so the segment number will be appended by the API automatically. But audio frame in NDNLive is always smaller than one segment. There is no segment number for audio frame, and stream\_info does not have this component, neither.
 \end{itemize}
 
-Then we can conclude that the above name stands for a piece of data which is the segment 0 inside the 8th video frame of stream-1 under the prefix of /ndn/ucla/ndnlive. 
+%Then we can conclude that the above name stands for a piece of data which is the segment 0 inside the 8th video frame of stream-1 under the prefix of /ndn/ucla/ndnlive. 
 
-The relative stream information name is shown as below:
-\begin{quote}
-``ndn/ucla/ndnlive/stream-1/video/stream\_info/ \\\ 1428725107049''
-\end{quote}
-
-Because the stream\_info would contain the current frame number of video and audio. And the consumer always want to retrieve the latest stream\_info to set up the pipeline and also the current frame number to start consuming from this number. So we append a timestamp component at the end of stream\_info to help the consumer retrieve the latest one.
-
-The whole namespace of NDNLive should look like Figure~\ref{fig:ndnlive_naming}.
-
-\begin{figure}%[htbp]
+\begin{figure}[htbp]
   \centering
   \includegraphics[scale=0.3]{ndnlive_naming}
   % \vspace{-0.3cm}
@@ -78,35 +73,43 @@ The whole namespace of NDNLive should look like Figure~\ref{fig:ndnlive_naming}.
   \label{fig:ndnlive_naming}
   %\vspace{-0.2cm}
 \end{figure}
+
+
+The following name is a typical name of the Data packet carrying the auxiliary information about the stream.
+% is relative stream information name is shown as below:
+\begin{quote}
+``/ndn/ucla/ndnlive/stream-1/video/stream\_info/ \\\ 1428725107049''
+\end{quote}
+
+Since remote participants join the live stream at different time and are not interested in watching the stream from its beginning, they must acquire the knowledge about the current frame numbers of the video and audio streams. At this preliminary step, the consumer requests the stream information object containing the current frame number of video and audio streams as well as other media encoding information. This information is kept up to date by the video publisher, which continuously publishes the new versions of this object. Each new version has a unique name with a different timestamp component in it (Figure~\ref{fig:ndnlive_naming}).
+
 % paragraph ndnlive_naming (end)
-\paragraph{NDNTube Naming} % (fold)
+
+\paragraph{NDNTube namespace} % (fold)
 \label{par:ndntube_naming}
 \vspace{0.3cm}
 
-The namespace of NDNTube is very similar to NDNLive. There are four differences:
+NDNtube's namespace is mostly similar to NDNlive, with the following four differences:
 \begin{enumerate}
-	\item{\textit{Playlist added}} 
+	\item{\textit{Playlist namespace branch}} 
 		
-		NDNTube will have a playlist component, which NDNLive does not. The name example is shown as below: 
+		The user of NDNtube can select any video from the list of available ones (e.g. playlist). The typical name of the playlist is shown below.
 		\begin{quote}
 		``/ndn/ucla/ndntube/playlist/1428725107042''
 		\end{quote}
-    Because the playlist can be changed at anytime as long as a new file is added or deleted. The consumer always wants to retrieve the latest one. We append a timestamp component at the end to distinguish the obsolete and latest playlist.
+    The playlist is identified by the timestamp name component, because it is updated every time the new file is added or the old file is removed from the collection of media resources. The consumer is interested in the latests version of it (e.g. rightmost).
+    
+	\item{\textit{Video\_Name}} 
 
-	\item{\textit{Video\_Name instead of Stream\_ID}} 
+		Video name must match one of the video names provided by the playlist. Semantically, the video name component replaces the stream ID component of the NDNlive application.
 
-		We should set a component to specific one video file instead of a live stream\_id.
+	\item{\textit{Permanent stream information}} 
 
-	\item{\textit{No Timestamp under Stream\_Info}} 
+    In NDNtube, the information object carrying auxiliary video encoding information (e.g. final frame number, width, height, etc.) is published only once and is not updated after that, unlike the stream information in NDNlive's live streams. As a result, the name of the information object does not contain a timestamp component.
 
-    In NDNTube the related stream information of one video file is fixed (basic information to set up the pipeline and the final frame number marked as the \textit{EOS} of the video file), so there is no need to add the timestamp component.
-
-	\item{\textit{Audio also needs Segment\_Number}} 
-
-    The audio frames may also contain more than one segments, because it's not under our control (We control the audio frame small enough for NDNLive), the quality of MP4 file will influence the size of audio frames.
+	\item{\textit{Multi-segment audio frames}} 
+   Since some mp4 video files that are added to the collection of media resources contain a high quality audio stream, the audio frames have to be broken into Data segments that have unique segment name component (Figure~\ref{fig:ndntube_naming}).
 \end{enumerate}
-
-The whole namespace of NDNTube is shown as Figure~\ref{fig:ndntube_naming}.
 
 \begin{figure}%[htbp]
   \centering
