@@ -49,7 +49,7 @@ The pseudocode of  NDNlive publisher application is provided in Algorithm~\ref{a
 \vspace{0.2cm}
 	\While{\textit{TRUE}}
 	\State $Name \textbf{ } suffix_v \leftarrow $ video frame number
-	\State $content_v \leftarrow $ video frame captured from Camera
+	\State $content_v \leftarrow $ video frame captured from camera
 	\State \textbf{produce}($h_v$, $Name\textbf{ }suffix_v$, $content_v$)
 	\EndWhile
 \vspace{0.2cm}
@@ -87,7 +87,7 @@ The pseudocode of  NDNlive publisher application is provided in Algorithm~\ref{a
 %\State \textbf{setcontextopt}($h_v$, \textbf{receive\_buffer\_size}, 1MB)
 \State \textbf{setcontextopt}($h_v$, \textbf{new\_segment}, \textit{ReassambleVideo})
 \vspace{0.2cm}
-	\While{\textit{reach Consume\_Interval\_Video}}
+	\While{\textit{reaching Video\_Interval}}
 	\State $Name \textbf{ } suffix_v \leftarrow $ video frame number
 	\State \textbf{consume}($h_v$, $Name\textbf{ }suffix_v$)
 	\State $framenumber ++$
@@ -107,7 +107,7 @@ The pseudocode of  NDNlive publisher application is provided in Algorithm~\ref{a
 \State $h_a \leftarrow $ \textbf{consumer}(/ndn/ucla/ndnlive/stream-1/audio/\\\ content, \textit{SDR})
 \State \textbf{setcontextopt}($h_a$, \textbf{new\_content}, \textit{ProcessAudio})
 \vspace{0.2cm}
-	\While{\textit{reach Consume\_Interval\_Audio}}
+	\While{\textit{reaching Audio\_Interval}}
 	\State $Name \textbf{ } suffix_a \leftarrow $ audio frame number
 	\State \textbf{consume}($h_a$, $Name\textbf{ }suffix_a$)
 	\State $framenumber ++$
@@ -185,7 +185,7 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 \State $h_v \leftarrow $ \textbf{producer}(/ndn/ucla/ndntube/video-1234/ \\\ video)
 \State \textbf{setcontextopt}($h_v$, \textbf{local\_repo}, \textit{TRUE})
 \vspace{0.2cm}
-	\While{\textit{NOT Final Frame}}
+	\While{\textit{NOT Final\_Frame}}
 	\State $Name \textbf{ } suffix_v \leftarrow $ video frame number
 	\State $content_v \leftarrow $ video frame
 	\State \textbf{produce}($h_v$, $Name\textbf{ }suffix_v$, $content_v$)
@@ -194,9 +194,9 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 \vspace{0.2cm}
 \vspace{0.2cm}
 \State $h_a \leftarrow $ \textbf{producer}(/ndn/ucla/ndntube/video-1234/ \\\ audio)
-\State \textbf{setcontextopt}($h_a$, \textbf{repo\_prefix}, \textit{/ndn/ucla/repo})
+\State \textbf{setcontextopt}($h_a$, \textbf{local\_repo}, \textit{TRUE})
 \vspace{0.2cm}
-	\While{\textit{NOT EOF}}
+	\While{\textit{NOT Final\_Frame}}
 	\State $Name \textbf{ } suffix_a \leftarrow $ audio frame number
 	\State $content_a \leftarrow $ audio frame
 	\State \textbf{produce}($h_a$, $Name\textbf{ }suffix_a$, $content_a$)
@@ -214,7 +214,7 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 %\State \textbf{setcontextopt}($h_v$, \textbf{receive\_buffer\_size}, 1MB)
 \State \textbf{setcontextopt}($h_v$, \textbf{new\_content}, \textit{ProcessVideo})
 \vspace{0.2cm}
-	\While{\textit{NOT EOS}}
+	\While{\textit{NOT Final\_Frame}}
 	\State $Name \textbf{ } suffix_v \leftarrow $ video frame number
 	\State \textbf{consume}($h_v$, $Name\textbf{ }suffix_v$)
 	\State $framenumber ++$
@@ -232,7 +232,7 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 \State $h_a \leftarrow $ \textbf{consumer}(ndn/ucla/ndntube/video-1234/ \\\ audio, \textit{RDR})
 \State \textbf{setcontextopt}($h_a$, \textbf{new\_content}, \textit{ProcessAudio})
 \vspace{0.2cm}
-	\While{\textit{NOT Final Frame}}
+	\While{\textit{NOT Final\_Frame}}
 	\State $Name \textbf{ } suffix_a \leftarrow $ audio frame number
 	\State \textbf{consume}($h_a$, $Name\textbf{ }suffix_a$)
 	\State $framenumber ++$
@@ -266,7 +266,7 @@ The application has five consumers: playlist consumer C$_{\text{1}}$, video cont
 \vspace{0.3cm}
 % paragraph data_retrieval (end)
 
-In this section we describe how NDNtube consumer application uses SDR and RDR protocols. The pseudocode of the NDNtube consumer application is provided in the Algorithm~\ref{alg:recordconsumerr}.
+In this section we describe how NDNtube consumer application uses SDR and RDR protocols. The pseudocode of the NDNtube consumer application is provided in the Algorithm~\ref{alg:recordconsumer}.
 
 \begin{enumerate}
 	\item {\textit{Content Retrieval}}

@@ -39,7 +39,7 @@ NDNlive and NDNtube consumers do not try to establish any persistent session or 
 
 \item{\textit{``Content verification and provenance''}}
 
-Every Data packet must be signed with an asymmetric key of the original publisher in order to reliable authenticate content. Video publishing pipeline outputs so many Data packets that the security component of ndn-cxx library becomes a bottleneck, because of its limited signing speed. In order to achieve the desired signing throughput, both NDNlive and NDNtube producers use Producer API with FAST\_SIGNING option (see the details in Section~\ref{par:signing_and_verification}).
+Every Data packet must be signed with an asymmetric key of the original publisher in order to reliable authenticate content. Video publishing pipeline outputs so many Data packets that the security component of ndn-cxx library becomes a bottleneck, because of its limited signing speed. In order to achieve the desired signing throughput, both NDNlive and NDNtube producers use Producer API with FAST\_SIGNING option.
 
 \end{itemize} 
 
