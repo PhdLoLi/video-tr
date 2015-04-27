@@ -10,15 +10,13 @@
   \vspace{-0.2cm}
 \end{figure}
 
-An similar work called NDNVideo was described in this technical report~\cite{ndnvideo}. Their aims are also to provide live and pre-recorded video streaming over NDN. They use Gstreamer to process media and Repo as the permanent storage. Producer and consumer concepts are the same, too. 
+NDNVideo provides live and pre-recorded video streaming over NDN using Gstreamer library for media processing and Repo for permanent storage~\cite{ndnvideo}. Since the new NFD does not support the previous packet format, this implementation of video streaming is now obsolete.
 
-But the way how we handle framing is quite different. In the prior NDNVideo project, the video or audio stream is chopped into fixed-size segments . A mapping between time and segment number is introduced to keep the video and audio synced (Figure~\ref{fig:ndnvideo_naming}). Seeking fuction is also supported by the time-segment mapping mechanism. 
+The major difference between NDNlive~/~NDNtube and NDNVideo is the organization of the video and audio content. In the NDNVideo, video or audio streams are chopped into fixed-size segments, which requires a special mapping between real playback time and segment numbers to keep video and audio synced, and support ``seek'' functionality (Figure~\ref{fig:ndnvideo_naming}). Fixed-size segmentation breaks the boundaries of frames (e.g. Application Data Units), which causes the inter-dependency between different frames leading to the problems inherent to TCP/IP such as Head-Of-Line (HOL) blocking.
 
-In our project, the video and audio stream is chopped into frames. One frame may contain several segments. The segmentation process is handled by Consumer / Producer API as we described above in Section~\ref{ssub:cpapi}. The application only focuses on the frame level and leaves other task to Consumer / Producer API. We think this application level framing is more like the true NDN way, which we mentioned in Section~\ref{sec:background}. Every frame has a unique name and is produced and consumed in one time. Only one frame missing won't affect other frames, thus leverages the whole impact to the playing back.
+In NDNlive and NDNtube, video and audio streams are chopped into frames. One frame may contain several segments. Since segmentation is provided by Consumer / Producer API, it is transparent for the application, which has to focus only at frame level. Since every frame has a unique name and is independent from any other frames, any missing frames do not affect other frames, which is highly beneficial for video streaming applications, especially for live streaming applications. For example, in NDNLive, if the previous frame can't be retrieved on time, the consumer can just skips it and continues with the next frame to keep the video streaming. 
 
-On the contrary, the fixed-size segmentation breaks the integrity of frames (ADU boundary). Only when all the packages are received correctly, the playing back progress can be guaranteed. So we think the prior NDNVideo is more like a TCP/IP way. 
-
-The application level framing also provides the flexibility to the video consumer. For example, in NDNLive, if the previous frame can't be retrieved on time or not integrated, the consumer can just skip this bad frame to keep the video streaming. We can see from the evaluation that it won't affect the video fluency. Table~\ref{table:comparison} shows other differences such as dependencies, Gstreamer version and coding language.
+Table~\ref{table:comparison} illustrates other significant differences such as library dependencies and versions, and programming languages.
 
 \begin{table}[ht]	
 	\begin{tabular}{|c|c|c|}

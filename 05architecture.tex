@@ -65,11 +65,11 @@ The following name is a typical name of the Data segment that corresponds to a v
 
 %Then we can conclude that the above name stands for a piece of data which is the segment 0 inside the 8th video frame of stream-1 under the prefix of /ndn/ucla/ndnlive. 
 
-\begin{figure}[htbp]
+\begin{figure}%[htbp]
   \centering
   \includegraphics[scale=0.3]{ndnlive_naming}
-  % \vspace{-0.3cm}
-  \caption{NDNLive Namespace}
+  \vspace{-0.3cm}
+  \caption{NDNlive namespace}
   \label{fig:ndnlive_naming}
   %\vspace{-0.2cm}
 \end{figure}
@@ -99,7 +99,7 @@ NDNtube's namespace is mostly similar to NDNlive, with the following four differ
 		\end{quote}
     The playlist is identified by the timestamp name component, because it is updated every time the new file is added or the old file is removed from the collection of media resources. The consumer is interested in the latests version of it (e.g. rightmost).
     
-	\item{\textit{Video\_Name}} 
+	\item{\textit{Video name}} 
 
 		Video name must match one of the video names provided by the playlist. Semantically, the video name component replaces the stream ID component of the NDNlive application.
 
@@ -108,14 +108,15 @@ NDNtube's namespace is mostly similar to NDNlive, with the following four differ
     In NDNtube, the information object carrying auxiliary video encoding information (e.g. final frame number, width, height, etc.) is published only once and is not updated after that, unlike the stream information in NDNlive's live streams. As a result, the name of the information object does not contain a timestamp component.
 
 	\item{\textit{Multi-segment audio frames}} 
+	
    Since some mp4 video files that are added to the collection of media resources contain a high quality audio stream, the audio frames have to be broken into Data segments that have unique segment name component (Figure~\ref{fig:ndntube_naming}).
 \end{enumerate}
 
-\begin{figure}%[htbp]
+\begin{figure}[htbp]
   \centering
   \includegraphics[scale=0.3]{ndntube_naming}
-  % \vspace{-0.3cm}
-  \caption{NDNTube Namespace}
+  \vspace{-0.3cm}
+  \caption{NDNtube namespace}
   \label{fig:ndntube_naming}
   %\vspace{-0.2cm}
 \end{figure}

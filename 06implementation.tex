@@ -1,27 +1,28 @@
 %!TEX root = nextndnvideo-tr.tex
 \section{implementation} % (fold)
 \label{sec:implementation}
-NDNLive and NDNTue are both developed using Consumer / Producer API. This API is an modification version of ndn-cxx library and requires NFD running to forward Interests. To compact with Consumer / Producer API and NFD, the project is also written in C++. We use Gstreamer 1.4.3 (other branch not tested) to process media. The supporting platform is UNIX-Like such as Mac OS and Linux. We will explain the implementation details about NDNLive and NDNTube respectively.
+NDNlive and NDNtube are developed using Consumer / Producer API and Gstreamer 1.4.3 library.\footnote{Other versions of Gstreamer may not be compatible}
+The supported platforms are Mac OS X and Linux Ubuntu.\footnote{Other Linux platforms are potentially supported} 
 
-\subsection{NDNLive}
-As we describe above (Figure~\ref{fig:ndnlive_arch}), the whole implementation is divided into producer host and consumer host. We will introduce the implementation details of each side, then describe some other vital parts we should pay attention to, such as \textit{Signing and Verification and Synchronization}. 
+\subsection{NDNlive}
+As shown in Figure~\ref{fig:ndnlive_arch}, NDNlive consists of two applications --- one is running at the publisher's host and another one at the consumer's host. In this section, we go over implementation details of the publisher's application and then continue with consumer's application.
 
 \begin{figure*}%[htbp]
   \centering
   \includegraphics[scale=0.3]{ndnlive_naming_pro}
   % \vspace{-0.3cm}
-  \caption{NDNLive Producer and Consumer Structure}
+  \caption{Locations of producers and consumers in the NDNlive namespace.}
   \label{fig:ndnlive_cp}
   %\vspace{-0.2cm}
 \end{figure*}
 
-\subsubsection{Producer}
+\subsubsection{Publisher}
 \label{ssub:ndnlive_pro}
-Four producers are presented in producer host (Figure~\ref{fig:ndnlive_cp}): video content producer, video stream information producer, audio content producer and audio stream information producer. 
+Publisher's application has four producers: video content producer, video stream information producer, audio content producer and audio stream information producer. Figure~\ref{fig:ndnlive_cp} shows the locations of the producers in the NDNlive namespace. 
 
-The content\_producer keeps producing frames with frame number increasing incrementally (Figure~\ref{fig:ndnlive_naming})and publish them to the NDN Network. 
+Two content\_producers continuously publish video and audio frames by incrementally increasing the correpsonding frame numbers (Figure~\ref{fig:ndnlive_naming}). 
 
-The stream\_info producer aims to provide the information about the live streaming such as frame rate, width, height, stream format. What's more, to help the consumer to catch up with the latest frame, the current frame number should also be included. To distinguish the obsolete stream\_info, timestamp will be appended at the end of name (Figure~\ref{fig:ndnlive_naming}).
+Two stream\_info producers continuously publish up-to-date information about the live streaming media: current frame number, frame rate, video width and height, encoding format (Figure~\ref{fig:ndnlive_naming}).
 
 \paragraph{Negative Acknowledgement} % (fold)
 \label{par:negative_acknowledgement}
@@ -36,7 +37,7 @@ There are two situations we should consider carefully.
 \end{enumerate}
 % paragraph negative_acknowledgement (end)
 
-The NDNLive porducer's Pseudocode is shown as Algorithm~\ref{alg:liveproducer}.
+The pseudocode of  NDNlive publisher application is provided in Algorithm~\ref{alg:liveproducer}.
 
 \begin{algorithm}[ht]
 \caption{NDNLive producer}
@@ -78,7 +79,7 @@ The NDNLive porducer's Pseudocode is shown as Algorithm~\ref{alg:liveproducer}.
 \end{algorithm}
 
 \begin{algorithm}[hbt]
-\caption{NDNLive consumer}
+\caption{NDNlive consumer}
 \label{alg:liveconsumer}
 \begin{algorithmic}[2]
 \State $h_v \leftarrow $ \textbf{consumer}(/ndn/ucla/ndnlive//stream-1/video/\\\ content, \textit{UDR})
@@ -93,8 +94,8 @@ The NDNLive porducer's Pseudocode is shown as Algorithm~\ref{alg:liveproducer}.
 	\EndWhile
 \vspace{0.2cm}
 
-\Function{ReassambleVideo}{Data \textbf{segment}}
-    \State $content \leftarrow $ reassamble \textbf{segment}
+\Function{ReassembleVideo}{Data \textbf{segment}}
+    \State $content \leftarrow $ reassemble \textbf{segment}
     \If{\textit{Final\_Segment}}
 		\State $video \leftarrow $ decode \textbf{content}
 	   	\State Play $video$
@@ -113,7 +114,7 @@ The NDNLive porducer's Pseudocode is shown as Algorithm~\ref{alg:liveproducer}.
 	\EndWhile
 \vspace{0.2cm}
 
-\Function{ReassambleAudio}{Data \textbf{content}}
+\Function{ReassembleAudio}{Data \textbf{content}}
 %   \State $video \leftarrow $ decode \textbf{content}
    	\State $audio \leftarrow $ decode \textbf{content}
    	\State Play $audio$
@@ -123,59 +124,62 @@ The NDNLive porducer's Pseudocode is shown as Algorithm~\ref{alg:liveproducer}.
 
 \subsubsection{Consumer}
 \label{ssub:ndnlive_con}
-Before the consumer asks for the true video data, it must fetch the live stream information to set up the Gstreamer playing pipeline. There are four consumers: video content consumer, video stream information consumer, audio content consumer and audio stream information consumer. 
+NDNlive consumer must fetch the live stream information to set up the Gstreamer playing pipeline before it can request any of the audio or video frames. The application has four consumers: video content consumer, video stream information consumer, audio content consumer and audio stream information consumer. 
 
-\paragraph{Data Retrieval Protocol}
+\paragraph{Data retrieval}
 \label{par:ndnlive_dataretrievalprotocol}
 \vspace{0.3cm}
-There are three Data Retrieval Protocols in Consumer / Producer API : \textbf{SDR, UDR, RDR}. We will illustrate which protocol we used for each consumer.
+Consumer / Producer API protocol suite offers three data retrieval protocols: SDR, UDR, RDR. In this section we describe how NDNlive consumer application uses SDR and UDR protocols. The pseudocode of the NDNlive consumer application is provided in the Algorithm~\ref{alg:liveconsumer}.
+
 \begin{enumerate}
 	\item {\textit{Content Retrieval}}
 	
-	Considering about the live streaming situation, the consumer needs to keep the video and audio retrieving progress running all the time. The aim is to fetch all the segments inside one frame as soon as possible. The fetching process should NOT be blocked because of one segment missing. So we use \textbf{UDR} (\textit{Unreliable Data Retrieval}) for frames retrieval of live streaming. Because the \textbf{UDR} will pipeline the Interests sending, and the segments may arrive out of order, then the consumer part should take care of the segments reassembling and ordering stuff. If one segment of frame is not retrieved on time, then the whole frame will be skipped. But for audio, the size of audio frame is small enough to fill in one segment, so we would use \textbf{SDR} (\textit{Simple Data Retrieval}) for audio retrieval.
+In the case of the live media streaming, the consumer application must continue retrieving video and audio frames at all times in order to keep up with the data production rate. All segments of each frame must be retrieved as fast as possible and the fetching process should not block other frames because of segment losses. 
+	
+NDNlive video content consumer uses \textbf{UDR} (\textit{Unreliable Data Retrieval}) protocol for video frame retrieval. Since \textbf{UDR} pipelines Interests transmission and does not provide ordering, some Data segments may arrive out of order. NDNlive consumer application takes care of Data segment reassembly and drops the whole frame is any of its segments are lost. 
+
+NDNlive audio content consumer uses \textbf{SDR} (\textit{Simple Data Retrieval}) for audio frame retrieval. UDR does not pipeline Interest packets, which satisfies our requirements, since the audio frame is small enough to fit in just one Data segment.
 
 	\item {\textit{Stream Information Retrieval}} % (fold)
 	
-	Because the stream information contains only one segment and will be fetched only one time (at the beginning of the playing back). We use \textbf{SDR} (\textit{Simple Data Retrieval}) to fetch the stream\_info for video and audio. Except for the basic stream information, the consumer also needs to obtain the current frame number the producer just produced. So that the frame consumer can start from this frame number and increase it one by one. To retrieve the latest stream information, \textit{Right\_Most\_Child} option should be set as TRUE.
+Stream information is periodically updated by the video publisher, which essentially means creation of a new Data packet with a unique name (e.g. new timestamp name component). The consumer that is trying to join the live stream does not know the unique name of the latest stream information object, and therefore cannot use UDR or RDR protocols which assume such knowledge. A simple solution of this problem is to use  \textbf{SDR} (\textit{Simple Data Retrieval}) protocol with \textit{Right\_Most\_Child} option set as TRUE. The protocol generates a single Interest packet with \textit{RightmostChildSelector} which is capable of fetching the latest stream info object. 
+
 \end{enumerate}
 
-\paragraph{Consume Interval} % (fold)
+\paragraph{Frame-to-frame interval} % (fold)
 \label{par:consume_interval}
 \vspace{0.3cm}
-In consumer part, we should control the Interest sending speed. If we send them too aggressively, the data in producer side may not get ready yet. If we send them too slowly, the playing back may not match the video generating speed. Our solution is to send Interests according to the video and audio frame rate. For example, the video frame rate is 30 frame/second, then the \textit{consume\_interval} should be $1000/30 \approx {33.3}$ millisecond. The consume function should be called every \textit{consume\_interval}.
-The boost scheduler will schedule the consuming progress every video or audio interval according to the video or audio \textit{consume\_interval}. 
-% paragraph consume_interval (end)
-\subsubsection{Some other vital parts}
-\paragraph{Signing and Verification} % (fold)
-\label{par:signing_and_verification}
-\vspace{0.3cm}
-Every NDN package should be signed with the producer's private key, only the verified frame can be retrieved successfully. But signing and verification are very time consuming. Consumer / Producer uses \textit{Manifest} \cite{api-tr} to improve the signing and verification performance. 
+Consumer application should control the Interest sending speed. If it sends Interests too aggressively and the data is not yet produced by the publisher application, the playback may collapse. If it sends Interests too slowly, the playback may fall behind the video generation. NDNlive uses constant frame rate encoding, therefore for a video, which is encoded by 30 frames per second, the interval between frames is $1000/30 \approx {33.3}$ millisecond. In other words, every 33 milliseconds the application calls \textit{consume()} that attempts to fetch all segments of the frame as quickly as possible.
 
-Instead of signing every segment in one frame, the producer only needs signing and verifying the Manifest. This option can be easily turned on or off by set \textit{EMBEDED\_\\\ MANIFEST} as TRUE or FALSE.
+%\subsubsection{Some other vital parts}
+%\paragraph{Signing and Verification} % (fold)
+%\label{par:signing_and_verification}
+%\vspace{0.3cm}
+%Every NDN package should be signed with the producer's private key, only the verified frame can be retrieved successfully. But signing and verification are very time consuming. Consumer / Producer uses \textit{Manifest} \cite{api-tr} to improve the signing and verification performance. 
+
+%Instead of signing every segment in one frame, the producer only needs signing and verifying the Manifest. This option can be easily turned on or off by set \textit{EMBEDED\_\\\ MANIFEST} as TRUE or FALSE.
 % paragraph signing_and_verification (end){Signing and Verification}
 
-\paragraph{Synchronization between video and audio}
+\paragraph{Synchronization of video and audio}
 \label{par:sync}
 \vspace{0.3cm}
-Since we process video and audio separately, it is a vital problem to keep them synced. Gstreamer can handle the synchronization for us in this way:
+Since NDNlive is streaming video and audio separately, it is a vital problem to keep these streams synced. When video and audio frames are captured, they are timestamped by the Gstreamer. The time information is recorded in \textit{GstBuffer} data structure containing the media data, and transferred along with every video or audio frame. When the consumer fetches the video or audio frames separately, the video and audio frames are pushed into the same \textit{GstQueue}. Gstreamer extracts the timestamps present in the video and audio frames, and displays the content in synchronized mode. 
 
-When video and audio are captured, they are timestamped by the Gstreamer. The time information will be recorded in \textit{GstBuffer} data structure which Gstreamer used to contain media data. This time information will also be transferred along with video or audio frame. Then when the consumer fetches the video or audio frame separately, the video and audio frames will be pushed into the same \textit{GstQueue}. Gstreamer will extract the timestamps hiding in the video and audio frames, then play them back together according to the timestamps. 
 
-The NDNLive consumer's Pseudocode is shown as Algorithm~\ref{alg:liveconsumer}.
 
-\subsection{NDNTube}
+\subsection{NDNtube}
 \begin{figure*}[ht]
   \centering
   \includegraphics[scale=0.3]{ndntube_naming_pro}
   % \vspace{-0.3cm}
-  \caption{NDNTube Producer and Consumer Structure}
+  \caption{Locations of producers and consumers in the NDNtube namespace.}
   \label{fig:ndntube_cp}
   %\vspace{-0.2cm}
 \end{figure*}
-Although NDNTube is very similar to NDNLive, data production and retrieval pattern are quite different. We will describe them in detail in this section.
+Although the namespace of NDNtube might look very similar to the namespace of NDNlive, the patterns of the data production and retrieval are quite different. %This section provides thWe will describe them in detail in this section.
 
 \begin{algorithm}[ht]
-\caption{NDNTube producer}
+\caption{NDNTube publisher}
 \label{alg:recordproducer}
 \begin{algorithmic}[3]
 \State $h_v \leftarrow $ \textbf{producer}(/ndn/ucla/ndntube/video-1234/ \\\ video)
@@ -243,36 +247,49 @@ Although NDNTube is very similar to NDNLive, data production and retrieval patte
 \end{algorithmic}
 \end{algorithm}
 
-\subsubsection{Producer}
+\subsubsection{Publisher}
+Publisher's application has three producers: dynamic playlist producer, video content producer and audio content producer. Figure~\ref{fig:ndntube_cp} shows the locations of the producers in the NDNtube namespace.
 
-There are three producers: playlist producer, video producer and audio producer.
+Playlist producer P$_{\text{1}}$ is responsible for generating the latest playlist every time a video file is added or removed from the collection of media resources. Producer P$_{\text{1}}$ runs as long as the whole publisher application.
 
-Playlist producer is responsible for generating the latest playlist every time it detected video file added or deleted.
+Video content producer P$_{\text{2}}$ is responsible for publishing video frames and the stream information object for a each particular media resource. Since producer P$_{\text{2}}$ is configured with \textit{LOCAL\_REPO} option, all packets are written to the repo running on the same local host. After all video frames as well as stream information object are successfully inserted in the repo, producer P$_{\text{2}}$ terminates its execution.\footnote{Publisher process continues to run.} 
 
-Different from NDNLive, we combine content and stream\_ \\\ info producer into one producer. Because for NDNLive, producers need to respond to the Interests coming from consumer directly. And content producer and stream\_info producer have different callbacks when the Interest enters the contexts or a cache\_miss is triggered, so we should separate them. But for NDNTube, all the stream\_info and content will be inserted into repo, and repo will take care of the response to consumers. There is no need to separate them. And once the producer finished producing the content and stream information, it can go offline, doesn't need to attach to the NDN Network. 
-
-The NDNTube producer's Pseudocode is shown as Algorithm~\ref{alg:recordproducer}.
+Audio content producer P$_{\text{3}}$ is responsible for publishing audio frames and the stream information object for a each particular media resource. Since producer P$_{\text{3}}$ is configured with \textit{LOCAL\_REPO} option, all packets are written to the repo running on the same local host. After all audio frames as well as stream information object are successfully inserted in the repo, producer P$_{\text{3}}$ terminates its execution (Preudocode~\ref{alg:recordproducer}).
 
 \subsubsection{Consumer}
 
-There are five consumers: playlist consumer, video content consumer, video stream information consumer, audio content consumer and audio stream info consumer.
+The application has five consumers: playlist consumer C$_{\text{1}}$, video content consumer C$_{\text{2}}$, video stream information consumer C$_{\text{3}}$, audio content consumer C$_{\text{4}}$ and audio stream information consumer C$_{\text{5}}$. %Figure~\ref{fig:ndntube_cp} shows the locations of the consumers in the NDNtube namespace.
 
-\paragraph{Data Retrieval Protocol} % (fold)
+
+\paragraph{Data retrieval} % (fold)
 \label{par:ndntube_data_retrieval}
 \vspace{0.3cm}
 % paragraph data_retrieval (end)
-Same with \textit{Streaminfo} tetrieval of NDNLive, we use \textbf{SDR} to retrieve stream information and the playing list. We want to fetch the latest version of playing list, so we should set \textit{Right\_Most\_Child} option as TRUE as well.
 
-However, for the content retrieval, we should use \textbf{RDR} (\textit{Reliable Data Retrieval}). Because we can't stand any segment missing for the pre-recorded video, and we always want the good quality of video and audio. If the video segments are not received on time, the Interest requesting for that segment will be retransmitted. This retransmission is done by Consumer / Producer API. 
+In this section we describe how NDNtube consumer application uses SDR and RDR protocols. The pseudocode of the NDNtube consumer application is provided in the Algorithm~\ref{alg:recordconsumerr}.
 
-If all the retransmission failed to get the data. The consumer will resend the Interest for that frame. Such retransmission is application level. It won't send the Interest asking for the next frame until it gets the requested frame or several times application level retransmission. At the same time, when lacking of frames the \textit{Buffering} mechanism will be triggered. Only when Gstreamer accumulates enough video and audio frames (such as two seconds duration), it will continue to play back. Otherwise, it will be just paused until the buffer is full.
+\begin{enumerate}
+	\item {\textit{Content Retrieval}}
+All video and audio frames as well as stream information objects are retrieved by \textbf{RDR} (\textit{Reliable Data Retrieval}) protocol, which provides ordered and reliable fetching of Data segments. NDNtube video player does not consume a live streaming media, and consequently can afford much larger buffering delays in order to preserve the original quality of the video and audio resources. By default, NDNtube buffers for at least two seconds of video and audio frames of real playback time before it begins (or resumes) its playback. Buffering allows to soften the delays of frame retrieval due to possible Interest retransmissions done by the RDR protocol. 
 
-\paragraph{Other issues} % (fold)
-\label{par:synchronization_between_video_and_audio}
-\vspace{0.3cm}
-There also exists the synchronization problem between video and audio. As we describe above~\ref{par:sync}, the Gstreamer will handle the synchronization part as long as we give the video and audio frame correct timestamps. In NDNLive, it is the capturing component who stamps the frames. In NDNTube, it is the \textit{Dumxer} who is responsible for time stamping. Once the media data flows through \textit{Dumxer}, this component will separate the video stream and audio stream according to their file type such as \textit{MP4} and adding the time information in each \textit{GstBuffer}.
+An expected but nevertheless interesting effect of frame-by-frame reliable delivery shows itself in rare cases when a particular video or audio frame cannot be retrieved within a reasonable amount of time (e.g. Interest retransmissions) and application faces the choice whether it wants to skip the frame or try to consume() it again. Since our goal was to prototype a Youtube-like user experience, in this situation, NDNtube consumer will try to retrieve the same frame again. 
 
-Because all the content and stream information are all already existed and written into Repo. Then Repo takes over the responsibility. There are not \textit{NACK} in producer part. Also due to this reason, the consumer side should retrieve the data as soon as possible to keep the quality and fluency of video playing back. The default \textit{Consume\_Interval} is 0 in NDNTube.  
+	\item {\textit{Playlist Retrieval}} 
+	
+Playlist is periodically updated by the video publisher, which essentially means creation of a new Data packet with a unique name (e.g. new timestamp name component). The consumer that is trying to obtain the names of available media resources does not know the unique name of the latest playlist, and therefore cannot use UDR or RDR protocols which assume such knowledge. A simple solution of this problem is to use  \textbf{SDR} (\textit{Simple Data Retrieval}) protocol with \textit{Right\_Most\_Child} option set as TRUE. The protocol generates a single Interest packet with \textit{RightmostChildSelector} which is capable of fetching the latest playlist. 
+
+\end{enumerate}
+
+\paragraph{Frame-to-frame interval} 
+
+Since all the content and stream information already exists in the Repo for a long time, consumer can be quite aggressive with fetching video and audio frames. By default, NDNtube player starts fetching (via consume()) the next frame right after the current was successfully retrieved, which corresponds to the frame-to-frame interval of 0 milliseconds. Having below 0 ms. frame-to-frame interval is also a reality, because it is possible to fetch multiple frames in parallel.
+
+%\paragraph{Synchronization of video and audio} % (fold)
+%\label{par:synchronization_between_video_and_audio}
+%\vspace{0.3cm}
+%There also exists the synchronization problem between video and audio. As we describe above~\ref{par:sync}, the Gstreamer will handle the synchronization part as long as we give the video and audio frame correct timestamps. In NDNLive, it is the capturing component who stamps the frames. In NDNTube, it is the \textit{Dumxer} who is responsible for time stamping. Once the media data flows through \textit{Dumxer}, this component will separate the video stream and audio stream according to their file type such as \textit{MP4} and adding the time information in each \textit{GstBuffer}.
+
+  
 
 The NDNTube consumer's Pseudocode is shown as Algorithm~\ref{alg:recordconsumer}.
 % paragraph synchronization_between_video_and_audio (end)
