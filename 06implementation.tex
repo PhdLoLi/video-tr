@@ -27,20 +27,22 @@ Two stream\_info producers continuously publish up-to-date information about the
 \paragraph{Negative Acknowledgement} % (fold)
 \label{par:negative_acknowledgement}
 \vspace{0.3cm}
-There are two situations we should consider carefully. 
+In some situations, the live stream publisher is not able to satisfy Interests with actual data (e.g. video and audio frames).
+
 \begin{enumerate}
-	\item The first one is that, because once the consumer started consuming frames, it will have no idea the about the current frame number which producer is producing now. The consumer may sometimes request for a frame number ahead of the producing. It is the producer's duty to inform the consumer of such knowledge. We introduce \textbf{NACK}(\textit{Negative Acknowledgment}) to handle such situation. 
+	\item The consumer may sometimes miscalculate the pacing of video and audio frames and request the frame that does not exist at the moment (e.g. ahead of the production). The publisher can inform the consumer about this situation using \textit{nack()} function of the Consumer~/~Producer API. 
 
-	We can see from Algorithm~\ref{alg:liveproducer}, when the Interest asks for a piece of data not existed (out of date or not be produced yet), this will trigger the \textit{cache\_miss} callback function (\textit{Process\_Interest}). In that function, if the data was not produced (\textit{not\_ready}), the producer will set up an \textit{APPLICATION\_NACK} with \textit{PRODUCER\_ \\\ DELAY} option for this Interest together with the estimated delay time.
-
-	\item At the same time, although before the consumer starts to consume frames, it will ask for the current number, such information may also go out of date because of the network delay. These out-of-date frames will never be produced again, because the streaming is live. When faced with such situation, the producer will simply send a \textbf{NACK} with \textit{NO-DATA} option.
+	As illustrated by the Algorithm~\ref{alg:liveproducer}, producer calls \textit{nack()} function with \textit{PRODUCER\_ \\\ DELAY} header containing the anticipated time value after which the data may become available.
+	
+	\item Consumers join the live stream after the publisher. Since the publisher of the live stream stores only a limited number of the most recently produced audio and video frames, some consumers might request the frames that has already expired everywhere in the network. In this case, the publisher calls the \textit{nack()} operation with textit{NO-DATA} header, which informs consumers that a particular video or audio frame is no longer available.
+	
 \end{enumerate}
 % paragraph negative_acknowledgement (end)
 
-The pseudocode of  NDNlive publisher application is provided in Algorithm~\ref{alg:liveproducer}.
+The pseudocode of NDNlive publisher application is provided in Algorithm~\ref{alg:liveproducer}.
 
 \begin{algorithm}[ht]
-\caption{NDNLive producer}
+\caption{NDNlive producer}
 \label{alg:liveproducer}
 \begin{algorithmic}[1]
 \State $h_v \leftarrow $ \textbf{producer}(/ndn/ucla/ndnlive/stream-1/video/ \\\ content)
@@ -122,7 +124,7 @@ The pseudocode of  NDNlive publisher application is provided in Algorithm~\ref{a
 \end{algorithmic}
 \end{algorithm}
 
-\subsubsection{Consumer}
+\subsubsection{Player}
 \label{ssub:ndnlive_con}
 NDNlive consumer must fetch the live stream information to set up the Gstreamer playing pipeline before it can request any of the audio or video frames. The application has four consumers: video content consumer, video stream information consumer, audio content consumer and audio stream information consumer. 
 
@@ -140,15 +142,20 @@ NDNlive video content consumer uses \textbf{UDR} (\textit{Unreliable Data Retrie
 
 NDNlive audio content consumer uses \textbf{SDR} (\textit{Simple Data Retrieval}) for audio frame retrieval. UDR does not pipeline Interest packets, which satisfies our requirements, since the audio frame is small enough to fit in just one Data segment.
 
-	\item {\textit{Stream Information Retrieval}} % (fold)
+\textbf{ }
+
+\textbf{ }
+
+	\item {\textit{Stream Information Retrieval}} 
 	
 Stream information is periodically updated by the video publisher, which essentially means creation of a new Data packet with a unique name (e.g. new timestamp name component). The consumer that is trying to join the live stream does not know the unique name of the latest stream information object, and therefore cannot use UDR or RDR protocols which assume such knowledge. A simple solution of this problem is to use  \textbf{SDR} (\textit{Simple Data Retrieval}) protocol with \textit{Right\_Most\_Child} option set as TRUE. The protocol generates a single Interest packet with \textit{RightmostChildSelector} which is capable of fetching the latest stream info object. 
 
 \end{enumerate}
+\vspace{-0.5cm}
 
-\paragraph{Frame-to-frame interval} % (fold)
+\paragraph{Frame-to-frame interval}
+\vspace{0.1cm}
 \label{par:consume_interval}
-\vspace{0.3cm}
 Consumer application should control the Interest sending speed. If it sends Interests too aggressively and the data is not yet produced by the publisher application, the playback may collapse. If it sends Interests too slowly, the playback may fall behind the video generation. NDNlive uses constant frame rate encoding, therefore for a video, which is encoded by 30 frames per second, the interval between frames is $1000/30 \approx {33.3}$ millisecond. In other words, every 33 milliseconds the application calls \textit{consume()} that attempts to fetch all segments of the frame as quickly as possible.
 
 %\subsubsection{Some other vital parts}
@@ -161,8 +168,8 @@ Consumer application should control the Interest sending speed. If it sends Inte
 % paragraph signing_and_verification (end){Signing and Verification}
 
 \paragraph{Synchronization of video and audio}
+\vspace{0.1cm}
 \label{par:sync}
-\vspace{0.3cm}
 Since NDNlive is streaming video and audio separately, it is a vital problem to keep these streams synced. When video and audio frames are captured, they are timestamped by the Gstreamer. The time information is recorded in \textit{GstBuffer} data structure containing the media data, and transferred along with every video or audio frame. When the consumer fetches the video or audio frames separately, the video and audio frames are pushed into the same \textit{GstQueue}. Gstreamer extracts the timestamps present in the video and audio frames, and displays the content in synchronized mode. 
 
 
@@ -176,10 +183,10 @@ Since NDNlive is streaming video and audio separately, it is a vital problem to 
   \label{fig:ndntube_cp}
   %\vspace{-0.2cm}
 \end{figure*}
-Although the namespace of NDNtube might look very similar to the namespace of NDNlive, the patterns of the data production and retrieval are quite different. %This section provides thWe will describe them in detail in this section.
+Although the namespace of NDNtube might look very similar to the namespace of NDNlive, the patterns of the data production and retrieval are quite different. 
 
 \begin{algorithm}[ht]
-\caption{NDNTube publisher}
+\caption{NDNtube publisher}
 \label{alg:recordproducer}
 \begin{algorithmic}[3]
 \State $h_v \leftarrow $ \textbf{producer}(/ndn/ucla/ndntube/video-1234/ \\\ video)
@@ -206,7 +213,7 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 \end{algorithm}
 
 \begin{algorithm}[ht]
-\caption{NDNTube consumer}
+\caption{NDNtube consumer}
 \label{alg:recordconsumer}
 \begin{algorithmic}[4]
 \State $h_v \leftarrow $ \textbf{consumer}(/ndn/ucla/ndntube/video-1234/ \\\ video, \textit{RDR})
@@ -256,14 +263,14 @@ Video content producer P$_{\text{2}}$ is responsible for publishing video frames
 
 Audio content producer P$_{\text{3}}$ is responsible for publishing audio frames and the stream information object for a each particular media resource. Since producer P$_{\text{3}}$ is configured with \textit{LOCAL\_REPO} option, all packets are written to the repo running on the same local host. After all audio frames as well as stream information object are successfully inserted in the repo, producer P$_{\text{3}}$ terminates its execution (Preudocode~\ref{alg:recordproducer}).
 
-\subsubsection{Consumer}
+\subsubsection{Player}
 
-The application has five consumers: playlist consumer C$_{\text{1}}$, video content consumer C$_{\text{2}}$, video stream information consumer C$_{\text{3}}$, audio content consumer C$_{\text{4}}$ and audio stream information consumer C$_{\text{5}}$. %Figure~\ref{fig:ndntube_cp} shows the locations of the consumers in the NDNtube namespace.
+The application has five consumers: playlist consumer C$_{\text{1}}$, video content consumer C$_{\text{2}}$, video stream information consumer C$_{\text{3}}$, audio content consumer C$_{\text{4}}$ and audio stream information consumer C$_{\text{5}}$. Figure~\ref{fig:ndntube_cp} shows the locations of the consumers in the NDNtube namespace.
 
 
 \paragraph{Data retrieval} % (fold)
 \label{par:ndntube_data_retrieval}
-\vspace{0.3cm}
+\vspace{0.1cm}
 % paragraph data_retrieval (end)
 
 In this section we describe how NDNtube consumer application uses SDR and RDR protocols. The pseudocode of the NDNtube consumer application is provided in the Algorithm~\ref{alg:recordconsumer}.

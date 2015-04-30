@@ -6,26 +6,19 @@
 %
 \pdfpagewidth=8.5in
 \pdfpageheight=11in
-\usepackage{flushend}
-%\AddToShipoutPicture*{%
-%\setlength{\@tempdimb}{20pt}%
-%\setlength{\@tempdimc}{\paperheight}%
-%\setlength{\unitlength}{1pt}%
-%\put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){%
-%   \makebox(0,-60)[l]{\color{blue}%
-%
-%  }%
-  
-%\put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){%
-%    \makebox(0,-85)[l]{\color{black}%
-%}%
-%}%
-
-%\put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){%
-%    \makebox(0,-110)[l]{\color{black}%
-%}%
-%  }%
-%}
+\AddToShipoutPicture*{%
+\setlength{\@tempdimb}{20pt}%
+\setlength{\@tempdimc}{\paperheight}%
+\setlength{\unitlength}{1pt}%
+\put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){%
+    \makebox(0,-85)[l]{\color{blue}%
+NDN, Technical Report NDN-0031, 2015. \url{http://named-data.net/techreports.html}}
+  }%
+\put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){%
+    \makebox(0,-105)[l]{\color{black}%
+Revision 1: April 30, 2015}
+  }%
+}
 
 %
 \def\ps@headings{%
@@ -81,7 +74,9 @@ Lijing Wang \\ {\normalsize Tsinghua University} \\ {\normalsize wanglj11@mails.
 \maketitle
 
 \begin{abstract}
-Named Data Networking offers significant promise for content distribution applications, such as video playback application. Two NDN-based video projects are proposed in this technical report: NDNLive and NDNTube. They are live and pre-recorded video streaming project over NDN, which follows the ADU(Application Data Unit) designing pattern. Video and Audio stream are chopped into individual frames and get published and retrieved by Consumer / Producer API. NDNLive and NDNTube have shown some basic usages of this API. By naming every frame individually provides the flexibility and efficiency to application implementation.
+Named Data Networking offers significant advantages for media distribution applications: in-network caching and multicast capabilities. This technical report provides a detailed view on two video streaming applications: NDNlive and NDNtube. 
+NDNlive is capable of streaming live video captured by the camera and handling network problems by dropping individual video or audio frames. NDNtube prototypes Youtube-like user experience by serving dynamically generated playlist and streaming the media in its original quality. Both applications were developed on top of Consumer / Producer API~\cite{api-tr} providing a convenient way of publishing and fetching ADUs of any size, and Gstreamer~\cite{gstreamer} library providing media decoding/encoding functionality.
+%NDNlive is a live video streaming application built on top of UDR protocol of Consumer / Producer API, and NDNtube is a pre-recorded video streaming application built on top of RDR protocol. Video and audio streams are converted into sequences of individual frames by the Gstreamer media processing library and are published independently. Individual frames are later retrieved by UDR and RDR protocols offered in Consumer / Producer API.
 \end{abstract}
 
 

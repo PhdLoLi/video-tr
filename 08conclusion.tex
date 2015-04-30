@@ -1,5 +1,7 @@
 %!TEX root = nextndnvideo-tr.tex
 \section{conclusion} % (fold)
 \label{sec:conclusion}
-In this technical report, we have proposed two video streaming project based on NDN, which are NDNLive and NDNTube. They all follow the ADU design pattern by chopping the stream into video or audio frames but not the fixed-size segmentation, which will not preserve the Application Data Units' boundaries. This provides the flexibility and also efficiency to the application. We introduce the architecture, name space and implementation details of them respectively. We consider they are the first and complete implementation by using a new NDN Interests-Data exchanging library called Consumer / Producer API. NDNLive and NDNTube have shown some basic usages of that API and can also be treated as a good tutorial of how to use Consumer / Producer API.
-% section section_name (end)
+This technical report provides a detailed view on two video streaming applications: NDNlive and NDNtube.
+NDNlive is capable of streaming live video captured with the camera, and NDNtube is capable of streaming video from the mp4 encoded video files. Both applications organize video and audio streams as sequences of frames, which results in a big amount of flexibility in decision making process at the consumer side of the application. Due to the increased flexibility, NDNlive consumer is able to drop the frames which have not been reassembled by the playback deadline in order to keep up with the live stream. 
+
+NDNlive and NDNtube have different requirements for the user experience and, therefore, use different data retrieval protocols --- UDR and RDR, respectively. Both applications serve as good and relatively complete examples of using Consumer / Producer API for people who are interested in developing applications with the current implementation of the library, as well as Consumer / Producer model in general.

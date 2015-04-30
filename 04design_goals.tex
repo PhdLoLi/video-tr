@@ -11,7 +11,7 @@
 
 \section{design goals} % (fold)
 \label{sec:design_goals}
-UCLA REMAP lab put efforts in building NDNVideo~\cite{ndnvideo} that was one of the first showcases supporting the claim of the possibility of video streaming over NDN. The later changes in the packet format and the development of the new NDN forwarding daemon (NFD~\cite{nfd-guide}) made this implementation of video streaming software obsolete. 
+UCLA REMAP lab put efforts in building NDNVideo~\cite{ndnvideo} that was one of the first showcases in support of the claim of the possibility of video streaming over NDN. The later changes in the packet format and the development of the new NDN forwarding daemon (NFD~\cite{nfd-guide}) made this implementation of video streaming software obsolete. 
 
 NDNlive and NDNtube is the new effort of UCLA IRL lab to have similar functionality to NDNvideo compatible with the new packet format, new forwarder and new application libraries, such as Consumer / Producer API. The secondary goal of developing these application is to provide more complete examples for application developers learning the new Consumer / Producer API.
 
@@ -24,6 +24,8 @@ NDNlive provides the live video\&audio streaming to multiple users and guarantee
 \item{\textit{``Random access based on actual location in the video''}}
 
 The video stream is organized as two series of media frames: video and audio. The relationship between playback time and the frame number is non-ambiguous, because both applications use constant frame-rate encoding. In other words, the frame number can be easily calculated from the playback time information and the video and audio frame rate. 
+
+\textbf{ }
 
 \item{\textit{``Synchronized playback''}}
 

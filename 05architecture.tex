@@ -2,7 +2,7 @@
 \vspace{0.3cm}
 \section{Design} % (fold)
 \label{sec:arch}
-NDNlive and NDNtube are composed of two roles: publisher and player. Both publisher and player make use of appropriate parts of Consumer / Producer API to simplify the design of the system.
+NDNlive and NDNtube consist of two big components: publisher and consumer (player). Both publisher and player make use of appropriate parts of Consumer / Producer API, which significantly simplifies the design of the system.
 
 \paragraph{NDNlive architecture} % (fold)
 \vspace{0.3cm}
@@ -12,17 +12,15 @@ Figure~\ref{fig:ndnlive_arch} illustrates the architecture of NDNLive, which can
 \begin{itemize}
   \item \textit{Publisher}
 
-  NDNlive is a \textit{live streaming} application, therefore the publisher captures video from camera and audio from microphone, and passes it to the Gstreamer to get raw data encoded and extracted as video and audio frames. The video and audio frames are published to NDN network with Consumer / Producer API. 
+  NDNlive is a \textit{live streaming} application; the publisher captures video from camera and audio from microphone and passes it to the Gstreamer to encode the raw data and extract individual video and audio frames. The video and audio frames are published to NDN network with Consumer / Producer API. 
 
   \item \textit{Player}
 
-  The video player uses the UDR protocol of Consumer / Producer API protocol suite to generate Interest packets for specific video and audio frames, which are later passed to the Gstreamer for decoding purposes. However, the player application is responsible for timing the consumption of individual frames.
+  The video player uses the UDR protocol of Consumer / Producer API protocol suite to generate Interest packets for specific video and audio frames, which are later passed to the Gstreamer for decoding purposes. The player application is responsible for timing the consumption of individual frames, i.e. pacing of \textit{consume()} calls.
 
 \end{itemize}
 
-
-
-\paragraph{NDNTube Architecture} % (fold)
+\paragraph{NDNtube architecture} % (fold)
 \vspace{0.3cm}
 \label{par:ndntube_arch}
 Figure~\ref{fig:ndntube_arch} illustrates the architecture of NDNtube, which can be summarized as follows:
@@ -85,7 +83,7 @@ Since remote participants join the live stream at different time and are not int
 
 % paragraph ndnlive_naming (end)
 
-\paragraph{NDNTube namespace} % (fold)
+\paragraph{NDNtube namespace} % (fold)
 \label{par:ndntube_naming}
 \vspace{0.3cm}
 
