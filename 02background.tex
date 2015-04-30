@@ -3,7 +3,7 @@
 
 
 \section{background} % (fold)
-In this section, we talk about how NDNLive and NDNtube make use of external NDN and media processing libraries and other major NDN components. 
+In this section, we talk about how NDNlive and NDNtube make use of external NDN and media processing libraries and other major NDN components. 
 
 \label{sec:background}
 \subsection{Consumer / Producer API}
@@ -11,10 +11,10 @@ In this section, we talk about how NDNLive and NDNtube make use of external NDN 
 
 \begin{figure*}
   \centering
-  \includegraphics[scale=0.55]{ndnlive_arch}
+  \includegraphics[scale=0.55]{NDNlive_arch}
   % \vspace{-0.3cm}
-  \caption{NDNLive Architecture}
-  \label{fig:ndnlive_arch}
+  \caption{NDNlive Architecture}
+  \label{fig:NDNlive_arch}
   %\vspace{-0.2cm}
 \end{figure*}
 
@@ -28,17 +28,17 @@ We will talk about the implementation details in Section~\ref{sec:implementation
 
 We use Gstreamer~\cite{gstreamer} to handle the media processing part. 
 
-In NDNLive, raw video images captured by the camera are transferred to the \textit{Encoder\_v} component and are encoded into \textit{H264} format. Then the encoded video is passed to the \textit{Parser\_v} to be parsed into frames (\textit{B, P or I frame}). The microphone captures the raw audio, which is passed to the \textit{Encoder\_a}. The encoder component encodes the raw audio into \textit{AAC} format. The encoded audio stream is transferred to the \textit{Parser\_a} to be parsed into audio frames, which are passed to the Producer API for any possible segmentation. Video and audio data is retrieved frame by frame that are passed to the video \textit{Decoder\_v} and audio \textit{Decoder\_a} for the decoding into the format which the video \textit{Player\_v} or audio \textit{Player\_a} can play.
+In NDNlive, raw video images captured by the camera are transferred to the \textit{Encoder\_v} component and are encoded into \textit{H264} format. Then the encoded video is passed to the \textit{Parser\_v} to be parsed into frames (\textit{B, P or I frame}). The microphone captures the raw audio, which is passed to the \textit{Encoder\_a}. The encoder component encodes the raw audio into \textit{AAC} format. The encoded audio stream is transferred to the \textit{Parser\_a} to be parsed into audio frames, which are passed to the Producer API for any possible segmentation. Video and audio data is retrieved frame by frame that are passed to the video \textit{Decoder\_v} and audio \textit{Decoder\_a} for the decoding into the format which the video \textit{Player\_v} or audio \textit{Player\_a} can play.
 
-In NDNTube, the source for video and audio streams is an mp4 file containing \textit{H264} video and \textit{AAC} audio. Gstreamer opens the file and passes it to the \textit{Demuxer} component to separate video and audio streams. Since the video file is already encoded, the media processing pipeline does not have an \textit{Encoder} component in it. The encoded video or audio streams are separately pushed into the \textit{Parser} to generate video and audio frames.
+In NDNtube, the source for video and audio streams is an mp4 file containing \textit{H264} video and \textit{AAC} audio. Gstreamer opens the file and passes it to the \textit{Demuxer} component to separate video and audio streams. Since the video file is already encoded, the media processing pipeline does not have an \textit{Encoder} component in it. The encoded video or audio streams are separately pushed into the \textit{Parser} to generate video and audio frames.
 
-%Because we need to extract the frames from the video source, so now we only support \textit{H264} video encoded format and  encoded format for NDNLive and \textit{MP4} file format for NDNTube. 
+%Because we need to extract the frames from the video source, so now we only support \textit{H264} video encoded format and  encoded format for NDNlive and \textit{MP4} file format for NDNtube. 
 
 \subsection{Repo}
 \label{sec:repo}
-NDNLive streams the captured video and audio non-stop. Therefore, the media publisher just keeps producing new frames and does not care about the data it produced several minutes ago. The consumer is also interested only in recent video and audio frames. As long as the producer is attached to the NDN network, it  will serve the incoming Interests. %The consumer can get the data back and play them back immediately.
+NDNlive streams the captured video and audio non-stop. Therefore, the media publisher just keeps producing new frames and does not care about the data it produced several minutes ago. The consumer is also interested only in recent video and audio frames. As long as the producer is attached to the NDN network, it  will serve the incoming Interests. %The consumer can get the data back and play them back immediately.
 
-NDNTube publishes the video only once --- all Data packets corresponding to audio and video frames are permanent and never change after the initial publication. Since the same video could be requested multiple times by different users, it is reasonable to store the produced Data packets in a `database' which is exposed to the requests from the network. Otherwise, every time a different user requests the same video, the corresponding video and audio Data packets would have to be republished (and signed) in case NDN cache has not been able to satisfy these Interests.
+NDNtube publishes the video only once --- all Data packets corresponding to audio and video frames are permanent and never change after the initial publication. Since the same video could be requested multiple times by different users, it is reasonable to store the produced Data packets in a `database' which is exposed to the requests from the network. Otherwise, every time a different user requests the same video, the corresponding video and audio Data packets would have to be republished (and signed) in case NDN cache has not been able to satisfy these Interests.
 
 Repo-ng~\cite{repo-ng} is used as a permanent storage for the video and audio content. Repo-ng (repo-new generation) is an implementation of NDN persistent in-network storage, which exposes a Repo protocol~\cite{Repo-Protocol} allowing write access to applications. Repo insertion is natively supported by the Producer API with \textit{LOCAL\_REPO} option (if repo is running on the local host) or \textit{REMOTE\_REPO\_PREFIX} option to point to the right remote repo by its name prefix. 
 % section section_name (end)

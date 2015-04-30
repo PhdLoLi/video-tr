@@ -5,24 +5,24 @@ NDNlive and NDNtube are developed using Consumer / Producer API and Gstreamer 1.
 The supported platforms are Mac OS X and Linux Ubuntu.\footnote{Other Linux platforms are potentially supported} 
 
 \subsection{NDNlive}
-As shown in Figure~\ref{fig:ndnlive_arch}, NDNlive consists of two applications --- one is running at the publisher's host and another one at the consumer's host. In this section, we go over implementation details of the publisher's application and then continue with consumer's application.
+As shown in Figure~\ref{fig:NDNlive_arch}, NDNlive consists of two applications --- one is running at the publisher's host and another one at the consumer's host. In this section, we go over implementation details of the publisher's application and then continue with consumer's application.
 
 \begin{figure*}%[htbp]
   \centering
-  \includegraphics[scale=0.3]{ndnlive_naming_pro}
+  \includegraphics[scale=0.3]{NDNlive_naming_pro}
   % \vspace{-0.3cm}
   \caption{Locations of producers and consumers in the NDNlive namespace.}
-  \label{fig:ndnlive_cp}
+  \label{fig:NDNlive_cp}
   %\vspace{-0.2cm}
 \end{figure*}
 
 \subsubsection{Publisher}
-\label{ssub:ndnlive_pro}
-Publisher's application has four producers: video content producer, video stream information producer, audio content producer and audio stream information producer. Figure~\ref{fig:ndnlive_cp} shows the locations of the producers in the NDNlive namespace. 
+\label{ssub:NDNlive_pro}
+Publisher's application has four producers: video content producer, video stream information producer, audio content producer and audio stream information producer. Figure~\ref{fig:NDNlive_cp} shows the locations of the producers in the NDNlive namespace. 
 
-Two content\_producers continuously publish video and audio frames by incrementally increasing the correpsonding frame numbers (Figure~\ref{fig:ndnlive_naming}). 
+Two content\_producers continuously publish video and audio frames by incrementally increasing the correpsonding frame numbers (Figure~\ref{fig:NDNlive_naming}). 
 
-Two stream\_info producers continuously publish up-to-date information about the live streaming media: current frame number, frame rate, video width and height, encoding format (Figure~\ref{fig:ndnlive_naming}).
+Two stream\_info producers continuously publish up-to-date information about the live streaming media: current frame number, frame rate, video width and height, encoding format (Figure~\ref{fig:NDNlive_naming}).
 
 \paragraph{Negative Acknowledgement} % (fold)
 \label{par:negative_acknowledgement}
@@ -45,7 +45,7 @@ The pseudocode of NDNlive publisher application is provided in Algorithm~\ref{al
 \caption{NDNlive producer}
 \label{alg:liveproducer}
 \begin{algorithmic}[1]
-\State $h_v \leftarrow $ \textbf{producer}(/ndn/ucla/ndnlive/stream-1/video/ \\\ content)
+\State $h_v \leftarrow $ \textbf{producer}(/ndn/ucla/NDNlive/stream-1/video/ \\\ content)
 \State \textbf{setcontextopt}($h_v$, \textbf{cache\_miss}, \textit{ProcessInterest})
 \State \textbf{attach}($h_v$)
 \vspace{0.2cm}
@@ -56,7 +56,7 @@ The pseudocode of NDNlive publisher application is provided in Algorithm~\ref{al
 	\EndWhile
 \vspace{0.2cm}
 \vspace{0.2cm}
-\State $h_a \leftarrow $ \textbf{producer}(/ndn/ucla/ndnlive/stream-1/audio/ \\\  content)
+\State $h_a \leftarrow $ \textbf{producer}(/ndn/ucla/NDNlive/stream-1/audio/ \\\  content)
 \State \textbf{setcontextopt}($h_a$, \textbf{cache\_miss}, \textit{ProcessInterest})
 \State \textbf{attach}($h_a$)
 \vspace{0.2cm}
@@ -84,7 +84,7 @@ The pseudocode of NDNlive publisher application is provided in Algorithm~\ref{al
 \caption{NDNlive consumer}
 \label{alg:liveconsumer}
 \begin{algorithmic}[2]
-\State $h_v \leftarrow $ \textbf{consumer}(/ndn/ucla/ndnlive//stream-1/video/\\\ content, \textit{UDR})
+\State $h_v \leftarrow $ \textbf{consumer}(/ndn/ucla/NDNlive//stream-1/video/\\\ content, \textit{UDR})
 %\State \textbf{setcontextopt}($h_v$, \textit{EMBEDDED\_MANIFESTS}, \textit{TRUE})
 %\State \textbf{setcontextopt}($h_v$, \textbf{receive\_buffer\_size}, 1MB)
 \State \textbf{setcontextopt}($h_v$, \textbf{new\_segment}, \textit{ReassambleVideo})
@@ -106,7 +106,7 @@ The pseudocode of NDNlive publisher application is provided in Algorithm~\ref{al
 
 \vspace{0.4cm}
 
-\State $h_a \leftarrow $ \textbf{consumer}(/ndn/ucla/ndnlive/stream-1/audio/\\\ content, \textit{SDR})
+\State $h_a \leftarrow $ \textbf{consumer}(/ndn/ucla/NDNlive/stream-1/audio/\\\ content, \textit{SDR})
 \State \textbf{setcontextopt}($h_a$, \textbf{new\_content}, \textit{ProcessAudio})
 \vspace{0.2cm}
 	\While{\textit{reaching Audio\_Interval}}
@@ -125,11 +125,11 @@ The pseudocode of NDNlive publisher application is provided in Algorithm~\ref{al
 \end{algorithm}
 
 \subsubsection{Player}
-\label{ssub:ndnlive_con}
+\label{ssub:NDNlive_con}
 NDNlive consumer must fetch the live stream information to set up the Gstreamer playing pipeline before it can request any of the audio or video frames. The application has four consumers: video content consumer, video stream information consumer, audio content consumer and audio stream information consumer. 
 
 \paragraph{Data retrieval}
-\label{par:ndnlive_dataretrievalprotocol}
+\label{par:NDNlive_dataretrievalprotocol}
 \vspace{0.3cm}
 Consumer / Producer API protocol suite offers three data retrieval protocols: SDR, UDR, RDR. In this section we describe how NDNlive consumer application uses SDR and UDR protocols. The pseudocode of the NDNlive consumer application is provided in the Algorithm~\ref{alg:liveconsumer}.
 
@@ -177,10 +177,10 @@ Since NDNlive is streaming video and audio separately, it is a vital problem to 
 \subsection{NDNtube}
 \begin{figure*}[ht]
   \centering
-  \includegraphics[scale=0.3]{ndntube_naming_pro}
+  \includegraphics[scale=0.3]{NDNtube_naming_pro}
   % \vspace{-0.3cm}
   \caption{Locations of producers and consumers in the NDNtube namespace.}
-  \label{fig:ndntube_cp}
+  \label{fig:NDNtube_cp}
   %\vspace{-0.2cm}
 \end{figure*}
 Although the namespace of NDNtube might look very similar to the namespace of NDNlive, the patterns of the data production and retrieval are quite different. 
@@ -189,7 +189,7 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 \caption{NDNtube publisher}
 \label{alg:recordproducer}
 \begin{algorithmic}[3]
-\State $h_v \leftarrow $ \textbf{producer}(/ndn/ucla/ndntube/video-1234/ \\\ video)
+\State $h_v \leftarrow $ \textbf{producer}(/ndn/ucla/NDNtube/video-1234/ \\\ video)
 \State \textbf{setcontextopt}($h_v$, \textbf{local\_repo}, \textit{TRUE})
 \vspace{0.2cm}
 	\While{\textit{NOT Final\_Frame}}
@@ -200,7 +200,7 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 	\EndWhile
 \vspace{0.2cm}
 \vspace{0.2cm}
-\State $h_a \leftarrow $ \textbf{producer}(/ndn/ucla/ndntube/video-1234/ \\\ audio)
+\State $h_a \leftarrow $ \textbf{producer}(/ndn/ucla/NDNtube/video-1234/ \\\ audio)
 \State \textbf{setcontextopt}($h_a$, \textbf{local\_repo}, \textit{TRUE})
 \vspace{0.2cm}
 	\While{\textit{NOT Final\_Frame}}
@@ -216,7 +216,7 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 \caption{NDNtube consumer}
 \label{alg:recordconsumer}
 \begin{algorithmic}[4]
-\State $h_v \leftarrow $ \textbf{consumer}(/ndn/ucla/ndntube/video-1234/ \\\ video, \textit{RDR})
+\State $h_v \leftarrow $ \textbf{consumer}(/ndn/ucla/NDNtube/video-1234/ \\\ video, \textit{RDR})
 %\State \textbf{setcontextopt}($h_v$, \textit{EMBEDDED\_MANIFESTS}, \textit{TRUE})
 %\State \textbf{setcontextopt}($h_v$, \textbf{receive\_buffer\_size}, 1MB)
 \State \textbf{setcontextopt}($h_v$, \textbf{new\_content}, \textit{ProcessVideo})
@@ -236,7 +236,7 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 
 \vspace{0.4cm}
 
-\State $h_a \leftarrow $ \textbf{consumer}(ndn/ucla/ndntube/video-1234/ \\\ audio, \textit{RDR})
+\State $h_a \leftarrow $ \textbf{consumer}(ndn/ucla/NDNtube/video-1234/ \\\ audio, \textit{RDR})
 \State \textbf{setcontextopt}($h_a$, \textbf{new\_content}, \textit{ProcessAudio})
 \vspace{0.2cm}
 	\While{\textit{NOT Final\_Frame}}
@@ -255,7 +255,7 @@ Although the namespace of NDNtube might look very similar to the namespace of ND
 \end{algorithm}
 
 \subsubsection{Publisher}
-Publisher's application has three producers: dynamic playlist producer, video content producer and audio content producer. Figure~\ref{fig:ndntube_cp} shows the locations of the producers in the NDNtube namespace.
+Publisher's application has three producers: dynamic playlist producer, video content producer and audio content producer. Figure~\ref{fig:NDNtube_cp} shows the locations of the producers in the NDNtube namespace.
 
 Playlist producer P$_{\text{1}}$ is responsible for generating the latest playlist every time a video file is added or removed from the collection of media resources. Producer P$_{\text{1}}$ runs as long as the whole publisher application.
 
@@ -265,11 +265,11 @@ Audio content producer P$_{\text{3}}$ is responsible for publishing audio frames
 
 \subsubsection{Player}
 
-The application has five consumers: playlist consumer C$_{\text{1}}$, video content consumer C$_{\text{2}}$, video stream information consumer C$_{\text{3}}$, audio content consumer C$_{\text{4}}$ and audio stream information consumer C$_{\text{5}}$. Figure~\ref{fig:ndntube_cp} shows the locations of the consumers in the NDNtube namespace.
+The application has five consumers: playlist consumer C$_{\text{1}}$, video content consumer C$_{\text{2}}$, video stream information consumer C$_{\text{3}}$, audio content consumer C$_{\text{4}}$ and audio stream information consumer C$_{\text{5}}$. Figure~\ref{fig:NDNtube_cp} shows the locations of the consumers in the NDNtube namespace.
 
 
 \paragraph{Data retrieval} % (fold)
-\label{par:ndntube_data_retrieval}
+\label{par:NDNtube_data_retrieval}
 \vspace{0.1cm}
 % paragraph data_retrieval (end)
 
@@ -294,11 +294,11 @@ Since all the content and stream information already exists in the Repo for a lo
 %\paragraph{Synchronization of video and audio} % (fold)
 %\label{par:synchronization_between_video_and_audio}
 %\vspace{0.3cm}
-%There also exists the synchronization problem between video and audio. As we describe above~\ref{par:sync}, the Gstreamer will handle the synchronization part as long as we give the video and audio frame correct timestamps. In NDNLive, it is the capturing component who stamps the frames. In NDNTube, it is the \textit{Dumxer} who is responsible for time stamping. Once the media data flows through \textit{Dumxer}, this component will separate the video stream and audio stream according to their file type such as \textit{MP4} and adding the time information in each \textit{GstBuffer}.
+%There also exists the synchronization problem between video and audio. As we describe above~\ref{par:sync}, the Gstreamer will handle the synchronization part as long as we give the video and audio frame correct timestamps. In NDNlive, it is the capturing component who stamps the frames. In NDNtube, it is the \textit{Dumxer} who is responsible for time stamping. Once the media data flows through \textit{Dumxer}, this component will separate the video stream and audio stream according to their file type such as \textit{MP4} and adding the time information in each \textit{GstBuffer}.
 
   
 
-The NDNTube consumer's Pseudocode is shown as Algorithm~\ref{alg:recordconsumer}.
+The NDNtube consumer's Pseudocode is shown as Algorithm~\ref{alg:recordconsumer}.
 % paragraph synchronization_between_video_and_audio (end)
 
 % section implementation (end)
