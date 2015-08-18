@@ -16,7 +16,7 @@ Figure~\ref{fig:NDNlive_arch} illustrates the architecture of NDNlive, which can
 
   \item \textit{Player}
 
-  The video player uses the UDR protocol of Consumer / Producer API protocol suite to generate Interest packets for specific video and audio frames, which are later passed to the Gstreamer for decoding purposes. The player application is responsible for timing the consumption of individual frames, i.e. pacing of \textit{consume()} calls.
+  The video player uses the UDR/RDR/SDR protocol of Consumer / Producer API protocol suite to generate Interest packets for specific video and audio frames, which are later passed to the Gstreamer for decoding purposes. The player application is responsible for timing the consumption of individual frames, i.e. pacing of \textit{consume()} calls.
 
 \end{itemize}
 
@@ -102,7 +102,7 @@ NDNtube's namespace is mostly similar to NDNlive, with the following four differ
 
 	\item{\textit{Permanent stream information}} 
 
-    In NDNtube, the information object carrying auxiliary video encoding information (e.g. final frame number, width, height, etc.) is published only once and is not updated after that, unlike the stream information in NDNlive's live streams. As a result, the name of the information object does not contain a timestamp component.
+    In NDNtube, the information object carrying auxiliary video encoding information (e.g. final frame number, width, height, etc.) is published only once and is not updated after that, unlike the stream information in ND-Nlive's live streams. As a result, the name of the information object does not contain a timestamp component.
 
 	\item{\textit{Multi-segment audio frames}} 
 	

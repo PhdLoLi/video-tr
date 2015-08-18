@@ -33,8 +33,10 @@ In some situations, the live stream publisher is not able to satisfy Interests w
 	\item The consumer may sometimes miscalculate the pacing of video and audio frames and request the frame that does not exist at the moment (e.g. ahead of the production). The publisher can inform the consumer about this situation using \textit{nack()} function of the Consumer~/~Producer API. 
 
 	As illustrated by the Algorithm~\ref{alg:liveproducer}, producer calls \textit{nack()} function with \textit{PRODUCER\_ \\\ DELAY} header containing the anticipated time value after which the data may become available.
+
+	But in our latest implementation, we remove this part because we finally decide keeping some outstanding interests to leverage the delay between producer and consumer. So if the producer meets interest requesting for the data which are not yet produced, it will just omit these interest. Such interests will be satisfied later from the producer's \textit{Send\_Buffer}. We will discussion this in more details in Section~ \ref{par:consume_interval_pipelining}.
 	
-	\item Consumers join the live stream after the publisher. Since the publisher of the live stream stores only a limited number of the most recently produced audio and video frames, some consumers might request the frames that has already expired everywhere in the network. In this case, the publisher calls the \textit{nack()} operation with textit{NO-DATA} header, which informs consumers that a particular video or audio frame is no longer available.
+	\item Consumers join the live stream after the publisher. Since the publisher of the live stream stores only a limited number of the most recently produced audio and video frames, some consumers might request the frames that has already expired everywhere in the network. In this case, the publisher calls the \textit{nack()} operation with \textit{NO-DATA} header, which informs consumers that a particular video or audio frame is no longer available.
 	
 \end{enumerate}
 % paragraph negative_acknowledgement (end)
@@ -131,20 +133,24 @@ NDNlive consumer must fetch the live stream information to set up the Gstreamer 
 \paragraph{Data retrieval}
 \label{par:NDNlive_dataretrievalprotocol}
 \vspace{0.3cm}
-Consumer / Producer API protocol suite offers three data retrieval protocols: SDR, UDR, RDR. In this section we describe how NDNlive consumer application uses SDR and UDR protocols. The pseudocode of the NDNlive consumer application is provided in the Algorithm~\ref{alg:liveconsumer}.
+Consumer / Producer API protocol suite offers three data retrieval protocols: SDR, UDR, RDR. In this section we describe how NDNlive consumer application uses SDR and UDR (the latest implementation, we use RDR instead of UDR) protocols. The pseudocode of the NDNlive consumer application is provided in the Algorithm~\ref{alg:liveconsumer}. 
 
 \begin{enumerate}
 	\item {\textit{Content Retrieval}}
 	
 In the case of the live media streaming, the consumer application must continue retrieving video and audio frames at all times in order to keep up with the data production rate. All segments of each frame must be retrieved as fast as possible and the fetching process should not block other frames because of segment losses. 
-	
+
+NDNlive audio content consumer uses \textbf{SDR} (\textit{Simple Data Retrieval}) for audio frame retrieval. UDR does not pipeline Interest packets, which satisfies our requirements, since the audio frame is small enough to fit in just one Data segment.	
+
 NDNlive video content consumer uses \textbf{UDR} (\textit{Unreliable Data Retrieval}) protocol for video frame retrieval. Since \textbf{UDR} pipelines Interests transmission and does not provide ordering, some Data segments may arrive out of order. NDNlive consumer application takes care of Data segment reassembly and drops the whole frame is any of its segments are lost. 
 
-NDNlive audio content consumer uses \textbf{SDR} (\textit{Simple Data Retrieval}) for audio frame retrieval. UDR does not pipeline Interest packets, which satisfies our requirements, since the audio frame is small enough to fit in just one Data segment.
-
-\textbf{ }
-
-\textbf{ }
+But after several months' developments, we have switched NDNlive video data retrieval protocol from \textbf{UDR} to \textbf{RDR}, and audio data from \textbf{SDR} to \textbf{RDR}. The reasons are as following:
+	\begin{enumerate}
+		\item One video frame is often consisted of several segments (1 - 25). If one segment is missing, the whole frame will be useless. If we don't do retransmission for that segment, the other segments retrieved are wasted. And the accumulation of missing frames will cause synchronization problem between audio and video. And we found that segment missing is common, so we need retransmission.
+		\item If one interest arrived at producer side ahead of time, but in the reality it is very hard for the producer to estimate the Retry-After time of NACK. If this time is too small, the NACK is meaningless, because the next interest requesting the same segment is still not generated. If this time is too big, it will cause the delay of data retrieval, which we could not like see, neither. In the real experiments, we observe that if we could set the appropriate TIME-OUT and Retransmission-Time threshold for each interest and also the frame pipelining window, we could solve the problem of interests arriving too early or even make a good use of it: There could be always some outstanding interests(the number is controlled by the frame pipelining window) which will arrive at the producer part before they are generated. They would not be satisfied when they just arrived, but will be satisfied right away when the corresponding data are generated. For example, the video generating rate is 30 per second. It means that every 33 milliseconds, one video frame will be generated. What's more, the average RTT is 50 milliseconds, then one segment will arrive at the consumer side after 25 milliseconds. Then We could save at least half of the RTT compared to using Retry-After NACK, and the delay will also be leveraged or even eliminated. If the data was not retrieved within the lifetime, the retransmission will be issued and will be controlled by the threshold. We will discuss the frame pipelining fetching in more detail in the Fetching Pipelining paragraph. The point is that we need retransmission feature for both video and audio. 
+		\item We need to do reordering and reassembling if we use UDR. But RDR will help us do these. It's another benefit of RDR.
+	\end{enumerate}
+So after many experiments and considerations, we finally adopted RDR instead of UDR/SDR for NDNlive content retrieval. It doesn't mean that UDR is of no use, but RDR suits more according to such situations. We still keep the old design description to show the whole development curve. We want to share the designing path of NDNlive and hope this also will give other NDN APP developers some inspirations. We also don't change the PseudoCode of NDNlive(UDR version), because it shows that how people could use UDR and NACK. The pseudocode of the latest version of NDNlive using RDR looks almost the same with the NDNtube, which will be shown in next section. Because of the complexity of frame pipelining of consumer side and the playing back of producer side, the pseudocode will only show the parts related to the Consumer/Producer API.
 
 	\item {\textit{Stream Information Retrieval}} 
 	
@@ -153,10 +159,21 @@ Stream information is periodically updated by the video publisher, which essenti
 \end{enumerate}
 \vspace{-0.5cm}
 
-\paragraph{Frame-to-frame interval}
+\paragraph{Frame-to-frame Interval and Fetch Pipelining}
 \vspace{0.1cm}
-\label{par:consume_interval}
-Consumer application should control the Interest sending speed. If it sends Interests too aggressively and the data is not yet produced by the publisher application, the playback may collapse. If it sends Interests too slowly, the playback may fall behind the video generation. NDNlive uses constant frame rate encoding, therefore for a video, which is encoded by 30 frames per second, the interval between frames is $1000/30 \approx {33.3}$ millisecond. In other words, every 33 milliseconds the application calls \textit{consume()} that attempts to fetch all segments of the frame as quickly as possible.
+\label{par:consume_interval_pipelining}
+Consumer application should control the Interest sending speed. If it sends Interests too aggressively and the data is not yet produced by the publisher application, the playback may collapse. If it sends Interests too slowly, the playback may fall behind the video generation. NDNlive uses constant frame rate encoding, therefore for a video, which is encoded by 30 frames per second, the interval between frames is $1000/30 \approx {33.3}$ millisecond. In other words, if the next frame can't be retrieved within 33 ms, the playing back will be sucked. As we discussed above, now we use RDR to retrieve every frame. 
+
+RDR will handle the reordering and reassembling inside one frame and also the retransmission for us. But we need do the pipelining between frames. Our strategy is to set up a 
+\textit{Pipeline\_Window} which will be adjusted automatically according to the real-time RTT. The amount of frames which will be sending at the same time is equal to \textit{Pipeline\_Window} size. Any finished frame will trigger the following one frame. For example, now frame 13 to frame 22 is under retrieval, and frame 12 is just finished(may before frame 10), frame 23 will be issued immediately. So we should do the reordering inside the window. 
+
+\textit{Pipeline\_Window} can be calculated according to \textit{Frame\_RTT}: 
+
+$Pipeline\_Window =  Frame\_RTT / (1000 / FrameRate) $ 
+
+$Frame\_RTT = Accumulating\_Time / Frame\_Numbers$
+
+So the \textit{Frame\_RTT} here is referring to the average retrieving time of one frame. This formula can be understood very straightforwardly. If the frame retrieving speed wants to match the generating speed, the amount of frames issuing at the same time must be no less than \textit{Pipeline\_Window}. But we don't want to retrieve too aggressively, so we will pacing the following frames fetching one by one.
 
 %\subsubsection{Some other vital parts}
 %\paragraph{Signing and Verification} % (fold)
@@ -261,7 +278,7 @@ Playlist producer P$_{\text{1}}$ is responsible for generating the latest playli
 
 Video content producer P$_{\text{2}}$ is responsible for publishing video frames and the stream information object for a each particular media resource. Since producer P$_{\text{2}}$ is configured with \textit{LOCAL\_REPO} option, all packets are written to the repo running on the same local host. After all video frames as well as stream information object are successfully inserted in the repo, producer P$_{\text{2}}$ terminates its execution.\footnote{Publisher process continues to run.} 
 
-Audio content producer P$_{\text{3}}$ is responsible for publishing audio frames and the stream information object for a each particular media resource. Since producer P$_{\text{3}}$ is configured with \textit{LOCAL\_REPO} option, all packets are written to the repo running on the same local host. After all audio frames as well as stream information object are successfully inserted in the repo, producer P$_{\text{3}}$ terminates its execution (Preudocode~\ref{alg:recordproducer}).
+Audio content producer P$_{\text{3}}$ is responsible for publishing audio frames and the stream information object for a each particular media resource. Since producer P$_{\text{3}}$ is configured with \textit{LOCAL\_REPO} option, all packets are written to the repo running on the same local host. After all audio frames as well as stream information object are successfully inserted in the repo, producer P$_{\text{3}}$ terminates its execution (Algorithm~\ref{alg:recordproducer}).
 
 \subsubsection{Player}
 
@@ -277,6 +294,7 @@ In this section we describe how NDNtube consumer application uses SDR and RDR pr
 
 \begin{enumerate}
 	\item {\textit{Content Retrieval}}
+	
 All video and audio frames as well as stream information objects are retrieved by \textbf{RDR} (\textit{Reliable Data Retrieval}) protocol, which provides ordered and reliable fetching of Data segments. NDNtube video player does not consume a live streaming media, and consequently can afford much larger buffering delays in order to preserve the original quality of the video and audio resources. By default, NDNtube buffers for at least two seconds of video and audio frames of real playback time before it begins (or resumes) its playback. Buffering allows to soften the delays of frame retrieval due to possible Interest retransmissions done by the RDR protocol. 
 
 An expected but nevertheless interesting effect of frame-by-frame reliable delivery shows itself in rare cases when a particular video or audio frame cannot be retrieved within a reasonable amount of time (e.g. Interest retransmissions) and application faces the choice whether it wants to skip the frame or try to consume() it again. Since our goal was to prototype a Youtube-like user experience, in this situation, NDNtube consumer will try to retrieve the same frame again. 
@@ -287,9 +305,24 @@ Playlist is periodically updated by the video publisher, which essentially means
 
 \end{enumerate}
 
-\paragraph{Frame-to-frame interval} 
+\paragraph{Frame-to-frame Interval and Fetch Paralleling} 
 
-Since all the content and stream information already exists in the Repo for a long time, consumer can be quite aggressive with fetching video and audio frames. By default, NDNtube player starts fetching (via consume()) the next frame right after the current was successfully retrieved, which corresponds to the frame-to-frame interval of 0 milliseconds. Having below 0 ms. frame-to-frame interval is also a reality, because it is possible to fetch multiple frames in parallel.
+Since all the content and stream information already exists in the Repo for a long time, consumer can be quite aggressive with fetching video and audio frames. By default, NDNtube player starts fetching (via consume()) the next frame right after the current was successfully retrieved, which corresponds to the frame-to-frame interval of 0 milliseconds. Having below 0 ms, frame-to-frame interval is also a reality, because it is possible to fetch multiple frames in parallel. And actually, the successive frames must be fetched in parallel. One common video frame rate is 30, it means that every second, it will have 30 frames. Then to match the playing speed, the next frame must be fetched within 33 milliseconds. But the average RTT could be 50 milliseconds or longer, if we don't issue the interests fetching in parallel, it is impossible to match the playing speed.
+
+In our implementation, all frames inside one second will be fetched in parallel. For example, there would be 30 video frames and 45(average) audio samples are fetched at the same time for one of our test files. The next second fetching progress will be triggered only after all the frames inside the previous second are retrieved successfully. This is reasonable, because we will always buffer two seconds video to guarantee the fluency of video playing. And all the data are already being produced, so almost all frames inside one second can be retrieved within two RTT, which is much shorter than one second. The first RTT is to retrieve the manifest segment, then the last segment number is obtained from the manifest, the second RTT is to retrieve other segments. 
+
+The NDNtube consumer's pseudocode is shown as Algorithm~\ref{alg:recordconsumer}. The parallel fetching part is not shown due to conciseness.
+
+For NDNlive and NDNTube, we've tested them across NDN Testbed. They all work well at least across 6 hops, the overload map across NDN Testbed is shown as Figure ~\ref{fig:NDNlive_6hop}.
+
+\begin{figure*}[ht]
+  \centering
+  \includegraphics[scale=0.35]{ndnlive_6hops}
+  % \vspace{-0.3cm}
+  \caption{Overload Map over NDN Testbed}
+  \label{fig:NDNlive_6hop}
+  %\vspace{-0.2cm}
+\end{figure*}
 
 %\paragraph{Synchronization of video and audio} % (fold)
 %\label{par:synchronization_between_video_and_audio}
@@ -298,7 +331,7 @@ Since all the content and stream information already exists in the Repo for a lo
 
   
 
-The NDNtube consumer's Pseudocode is shown as Algorithm~\ref{alg:recordconsumer}.
+
 % paragraph synchronization_between_video_and_audio (end)
 
 % section implementation (end)
