@@ -31,7 +31,7 @@ The major difference between NDNlive~/~NDNtube and NDNVideo is the organization 
 
 In NDNlive and NDNtube, video and audio streams are chopped into frames. One frame may contain several segments. Since segmentation is provided by Consumer / Producer API, it is transparent for the application, which has to focus only at frame level. Since every frame has a unique name and is independent from any other frames, any missing frames do not affect other frames, which is highly beneficial for video streaming applications, especially for live streaming applications. For example, in NDNlive, if the previous frame can't be retrieved on time, the consumer can just skips it and continues with the next frame to keep the video streaming. 
 
-NDN-RTC is a real-time video conferencing library, which was designed to provide an enduser experience similar to Skype or Google Hangouts~\cite{ndn-rtc}. Just like NDNlive, it also fetch video and audio data frame by frame. But they are different in these aspects:
+NDN-RTC is a real-time video conferencing library, which was designed to provide an enduser experience similar to Skype or Google Hangouts~\cite{ndn-rtc}\cite{ndnrtc-icn}. Just like NDNlive, it also fetch video and audio data frame by frame. But they are different in these aspects:
 \begin{enumerate}
 	\item Firstly, key frame and delta frame will have different namesapce in NDN-RTC, while we don't distinguish them in NDNlive implementation. 
 
